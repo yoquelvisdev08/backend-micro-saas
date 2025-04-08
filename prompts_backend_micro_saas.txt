@@ -1,0 +1,156 @@
+PROMPT 0: Inicialización del Proyecto
+Crea toda la estructura inicial de carpetas para un backend en Node.js con Express y MongoDB. Debe incluir:
+
+1. Instalación de dependencias:
+   - express, mongoose, dotenv, cors, jsonwebtoken, bcryptjs
+   - como devDependencies: nodemon, jest, supertest, eslint, prettier
+
+2. Estructura de carpetas:
+   - /src
+     - /config
+     - /controllers
+     - /middlewares
+     - /models
+     - /routes
+     - /services
+     - /utils
+     - /tests
+   - .env (vacío)
+   - .env.example (con claves ejemplo)
+   - .gitignore
+   - README.md
+
+3. Archivos base:
+   - server.js
+   - src/config/db.js (conexión MongoDB)
+   - script básico para iniciar el servidor
+
+4. Scripts en package.json:
+   - start, dev, test, lint, prettier
+
+5. Configura Eslint y Prettier
+
+Incluye comentarios para facilitar el desarrollo posterior. No implementes lógica todavía.
+
+------------------------------------------------------------
+
+PROMPT 1: Autenticación y Registro de Usuarios
+Crea el módulo de autenticación con JWT. Incluye:
+
+1. Modelo de Usuario con Mongoose (nombre, email, contraseña)
+2. Rutas: POST /register y POST /login
+3. Hash de contraseña con bcryptjs
+4. Token JWT con expiración de 7 días
+5. Middleware de autenticación (verifica JWT)
+6. Pruebas unitarias e integración
+7. Validaciones básicas (email único, contraseña mínima)
+
+------------------------------------------------------------
+
+PROMPT 2: Gestión de Sitios del Usuario
+Implementa la funcionalidad CRUD de "Sitios" que pertenecen a un usuario autenticado. Cada sitio representa una web externa o un dominio que se está monitoreando. Incluye:
+
+1. Modelo `Site` con nombre, url, userId
+2. Endpoints protegidos:
+   - GET /sites (listar sitios del usuario)
+   - POST /sites (crear nuevo sitio)
+   - PUT /sites/:id (editar sitio)
+   - DELETE /sites/:id (eliminar sitio)
+3. Relación entre usuarios y sitios
+4. Pruebas unitarias y de integración
+
+------------------------------------------------------------
+
+PROMPT 3: Registro de Actividades (Logs)
+Crea el módulo para registrar actividades del sistema. Por cada acción relevante (ej: login, creación de sitio, eliminación, etc.), debe guardarse un log. Incluye:
+
+1. Modelo `Log` con tipo, mensaje, timestamp y userId
+2. Servicio `logService` para crear logs desde cualquier parte del código
+3. Middleware para log automático de rutas sensibles
+4. GET /logs para obtener logs del usuario (protegido)
+5. Pruebas
+
+------------------------------------------------------------
+
+PROMPT 4: Estadísticas
+Crea un módulo que permita generar estadísticas básicas para el usuario. Incluye:
+
+1. GET /stats:
+   - número de sitios
+   - cantidad de logs
+   - último login
+   - acciones por día (últimos 7 días)
+2. Usa agregaciones en MongoDB
+3. Protegido por autenticación
+4. Pruebas
+
+------------------------------------------------------------
+
+PROMPT 5: Planes y Restricciones
+Agrega soporte para distintos planes de usuario (gratis, pro, etc.).
+
+1. Campo "plan" en el modelo de usuario
+2. Middleware que limite la cantidad de sitios según el plan
+3. GET /plans para consultar información sobre los planes
+4. POST /upgrade-plan para cambiar de plan (simulado)
+5. Pruebas
+
+------------------------------------------------------------
+
+PROMPT 6: Webhooks (Opcional)
+Agrega soporte para que el usuario pueda registrar un webhook y recibir notificaciones externas.
+
+1. Campo webhookUrl en el modelo de usuario
+2. En el servicio de logs, si el usuario tiene webhook, enviar POST al URL con la data del log
+3. POST /webhook para probar desde el frontend
+4. Pruebas
+
+------------------------------------------------------------
+
+PROMPT 7: Gestión de Roles y Permisos
+Implementa un sistema de roles (admin, user).
+
+1. Campo "role" en el modelo de usuario
+2. Middleware que solo permita admins en ciertas rutas
+3. Rutas protegidas para administrar usuarios (solo admin)
+4. Pruebas
+
+------------------------------------------------------------
+
+PROMPT 8: Manejo Global de Errores y Logger
+1. Middleware global que capture todos los errores y los devuelva en formato consistente (status, mensaje)
+2. Logger (Winston o similar) para guardar logs de error
+3. Integrar en server.js
+4. Pruebas simulando errores
+
+------------------------------------------------------------
+
+PROMPT 9: Seguridad y Middleware Adicional
+1. Middleware CORS correctamente configurado
+2. Helmet para headers de seguridad
+3. Rate Limiting en login y endpoints sensibles
+4. Testear headers y límites
+
+------------------------------------------------------------
+
+PROMPT 10: Documentación Swagger
+1. Instalar swagger-jsdoc y swagger-ui-express
+2. Configurar documentación automática
+3. /api/docs expone la UI
+4. Documentar cada endpoint con parámetros y respuestas
+
+------------------------------------------------------------
+
+PROMPT 11: Integración Continua y Despliegue
+1. Agregar scripts en package.json para test/lint
+2. Configurar GitHub Actions o CI tool:
+   - install
+   - run test
+   - run lint
+   - deploy (puede ser simulado)
+3. Archivos .env.example
+4. Documentar deploy
+
+------------------------------------------------------------
+yoquelvisdev
+MgOOKlW82ywLbujV
