@@ -54,15 +54,23 @@ cp .env.example .env
 4. Configurar variables de entorno en `.env`:
 
 ```
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+
 # Appwrite Configuration
 APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
 APPWRITE_PROJECT_ID=your_appwrite_project_id
+# Esta API Key necesita permisos: databases.read, databases.write, documents.read, documents.write, collections.read, collections.write
 APPWRITE_API_KEY=your_appwrite_api_key
 APPWRITE_DATABASE_ID=your_appwrite_database_id
 
 # JWT Configuration
 JWT_SECRET=your_jwt_secret_key_goes_here
-JWT_EXPIRE=7d
+JWT_EXPIRES_IN=30d
+
+# Logging
+LOG_LEVEL=debug
 ```
 
 ## Ejecución
@@ -109,7 +117,13 @@ npm test
    - `sites`: Para almacenar los sitios que se monitorean
    - `logs`: Para almacenar los logs de actividad
 5. Configura los atributos de cada colección según los modelos de la aplicación
-6. Genera una API key con los permisos necesarios
+6. Genera una API key con los permisos necesarios:
+   - databases.read
+   - databases.write
+   - documents.read
+   - documents.write
+   - collections.read
+   - collections.write
 7. Copia los IDs y tokens correspondientes a tu archivo `.env`
 
 ## API Endpoints
@@ -138,8 +152,18 @@ http://localhost:5000/api/docs
 - **Logs**: `/api/logs/*`
   - GET `/`: Listar logs
 
-- **Stats**: `/api/stats`
-  - GET `/`: Obtener estadísticas
+- **Stats**: `/api/stats/*`
+  - GET `/`: Obtener estadísticas generales
+  - GET `/activity`: Obtener distribución de actividad
+  - GET `/user`: Obtener estadísticas del usuario autenticado
+  - GET `/user/:userId`: Obtener estadísticas de un usuario específico (admin)
+  - GET `/admin`: Obtener estadísticas de la plataforma (admin)
+
+- **Admin**: `/api/admin/*`
+  - Diversos endpoints para gestión administrativa
+
+- **User**: `/api/user/*`
+  - Endpoints para gestión de usuarios
 
 ## Despliegue en Railway
 

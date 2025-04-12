@@ -154,3 +154,159 @@ PROMPT 11: Integración Continua y Despliegue
 ------------------------------------------------------------
 yoquelvisdev
 MgOOKlW82ywLbujV
+
+
+
+
+
+
+
+MÓDULO 13 - MEJORAR ENDPOINT DE LOGS
+
+1. Ruta: GET /api/logs
+2. Parámetros de consulta:
+   - page: number (default: 1)
+   - limit: number (default: 10)
+   - startDate: string (ISO date)
+   - endDate: string (ISO date)
+   - siteId: string (opcional)
+   - action: string (opcional)
+   - status: string (opcional)
+   - search: string (búsqueda en mensaje)
+   - sortBy: string (default: 'createdAt')
+   - sortOrder: 'asc' | 'desc' (default: 'desc')
+
+3. El endpoint debe devolver:
+{
+  success: boolean,
+  message: string,
+  data: {
+    logs: [{
+      _id: string,
+      siteId: string,
+      siteName: string,
+      userId: string,
+      action: string,
+      status: string,
+      message: string,
+      details: {
+        previousState?: any,
+        newState?: any,
+        changes?: string[],
+        errorCode?: string,
+        responseTime?: number,
+        statusCode?: number,
+        headers?: object,
+        method?: string,
+        url?: string
+      },
+      metadata: {
+        ip: string,
+        userAgent: string,
+        location?: {
+          country: string,
+          city: string,
+          coordinates: [number, number]
+        },
+        device?: {
+          type: string,
+          browser: string,
+          os: string
+        }
+      },
+      tags: string[],
+      severity: string,
+      relatedLogs: string[],
+      duration: number,
+      createdAt: string,
+      updatedAt: string
+    }],
+    pagination: {
+      total: number,
+      totalPages: number,
+      currentPage: number,
+      limit: number,
+      hasNextPage: boolean,
+      hasPrevPage: boolean
+    },
+    summary: {
+      totalLogs: number,
+      successRate: number,
+      errorRate: number,
+      avgResponseTime: number,
+      mostCommonActions: [{
+        action: string,
+        count: number
+      }],
+      mostAffectedSites: [{
+        siteId: string,
+        siteName: string,
+        count: number
+      }],
+      severityDistribution: {
+        low: number,
+        medium: number,
+        high: number,
+        critical: number
+      }
+    }
+  }
+}
+
+4. Características adicionales:
+   - Agregación de logs relacionados
+   - Detección automática de severidad
+   - Enriquecimiento con geolocalización
+   - Detección de anomalías
+   - Compresión de logs repetitivos
+   - Retención configurable
+   - Exportación a CSV/JSON
+   - Webhooks para logs críticos
+   - Filtros combinados
+   - Búsqueda full-text
+   - Índices optimizados
+
+5. Consideraciones:
+   - Rate limiting
+   - Cacheo
+   - Paginación eficiente
+   - Validación de parámetros
+   - Timeouts
+   - Compresión
+   - Documentación Swagger
+   - Logging de accesos
+   - Métricas de rendimiento
+
+MÓDULO 14 - ENDPOINT DE CONFIGURACIONES AVANZADAS
+
+1. Rutas:
+   - GET /api/settings
+   - PUT /api/settings
+   - PATCH /api/settings/:section
+
+2. Estructura de datos: ver esquema completo en la solicitud original.
+
+3. Características:
+   - Validación de configuraciones
+   - Historial de cambios
+   - Configuración por usuario/rol
+   - Templates predefinidos
+   - Import/Export
+   - Rollback
+   - Valores por defecto
+   - Documentación integrada
+   - Validación de dependencias
+
+4. Seguridad:
+   - Encriptación de datos sensibles
+   - Auditoría de cambios
+   - Validación de permisos
+   - Sanitización
+   - Backup automático
+
+5. Consideraciones:
+   - Cacheo
+   - Actualización en tiempo real
+   - Notificaciones de cambios
+   - Migración
+   - Valores seguros por defecto
