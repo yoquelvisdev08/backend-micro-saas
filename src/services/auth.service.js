@@ -22,15 +22,15 @@ class AuthService {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
       
-      // Create minimal user data - only include fields that exist in the collection
+      // Create minimal user data with email as array (as required by Appwrite)
       const userData = {
         name,
-        email,
+        email: [email],  // Convert to array as required by Appwrite
         password: hashedPassword
-        // Removed createdAt field as it doesn't exist in the collection
       };
       
-      logger.info(`Creating user with minimal data structure. Fields: ${Object.keys(userData).join(', ')}`);
+      logger.info(`Creating user with data structure. Fields: ${Object.keys(userData).join(', ')}`);
+      logger.info(`Email is being sent as array: ${JSON.stringify(userData.email)}`);
       
       // Generate a unique ID for the new user
       const userId = ID.unique();
@@ -49,7 +49,7 @@ class AuthService {
       // Generate JWT token with secret
       const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here';
       const token = jwt.sign(
-        { id: user.$id, email: user.email },
+        { id: user.$id, email: user.email[0] },  // Use first email in the array
         JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN || '30d' }
       );
@@ -61,7 +61,7 @@ class AuthService {
         user: {
           id: user.$id,
           name: user.name,
-          email: user.email
+          email: user.email[0]  // Return first email in the array
         },
         token
       };
@@ -87,11 +87,11 @@ class AuthService {
     try {
       logger.info(`Attempting to log in user with email: ${email}`);
       
-      // Find the user by email
+      // Find the user by email (which is stored as an array in Appwrite)
       const users = await databases.listDocuments(
         DATABASE_ID,
         USERS_COLLECTION_ID,
-        [Query.equal('email', email)]
+        [Query.search('email', email)]  // Search in email array
       );
       
       if (users.total === 0) {
@@ -112,7 +112,7 @@ class AuthService {
       // Generate JWT token with secret
       const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here';
       const token = jwt.sign(
-        { id: user.$id, email: user.email },
+        { id: user.$id, email: user.email[0] },  // Use first email in the array
         JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN || '30d' }
       );
@@ -124,7 +124,7 @@ class AuthService {
         user: {
           id: user.$id,
           name: user.name,
-          email: user.email
+          email: user.email[0]  // Return first email in the array
         }
       };
     } catch (error) {
@@ -153,7 +153,7 @@ class AuthService {
       return {
         id: user.$id,
         name: user.name,
-        email: user.email
+        email: user.email[0]  // Return first email in the array
       };
     } catch (error) {
       logger.error(`Error in getUserById service for ID ${userId}:`, error);

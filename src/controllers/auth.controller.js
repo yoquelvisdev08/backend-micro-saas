@@ -85,7 +85,7 @@ exports.login = async (req, res) => {
       action: 'login',
       message: `User logged in: ${email}`,
       userId: user.id,
-      metadata: { email },
+      metadata: { email: user.email },
       ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress
     }).catch(err => {
       logger.error('Error logging login:', err);

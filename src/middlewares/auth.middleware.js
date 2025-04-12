@@ -49,7 +49,7 @@ exports.protect = async (req, res, next) => {
     // Add user to request with default role
     req.user = {
       id: user.$id,
-      email: user.email,
+      email: Array.isArray(user.email) ? user.email[0] : user.email, // Handle email as array
       // Always use 'user' as default role since we don't store roles in Appwrite
       role: 'user',
       name: user.name

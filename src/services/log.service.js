@@ -20,14 +20,26 @@ class LogService {
         return null;
       }
       
+      // Process metadata to handle arrays correctly
+      let processedMetadata = metadata;
+      if (typeof metadata === 'object') {
+        // If metadata contains email as array, process it
+        if (metadata.email && Array.isArray(metadata.email)) {
+          metadata.email = metadata.email[0];
+        }
+        processedMetadata = JSON.stringify(metadata);
+      } else {
+        processedMetadata = String(metadata);
+      }
+      
       // Prepare log document with minimal fields - no createdAt
       const logDocument = {
         type,
         action,
         message: message || `${type}:${action}`,
         userId,
-        // Ensure metadata is a string
-        metadata: typeof metadata === 'object' ? JSON.stringify(metadata) : String(metadata)
+        // Ensure metadata is properly formatted
+        metadata: processedMetadata
       };
       
       // Only add IP if provided
@@ -197,13 +209,29 @@ class LogService {
    */
   formatLog(log) {
     try {
+      // Parse metadata safely
+      let parsedMetadata = {};
+      if (log.metadata) {
+        try {
+          parsedMetadata = JSON.parse(log.metadata);
+          
+          // Handle email arrays in metadata if they exist
+          if (parsedMetadata.email && Array.isArray(parsedMetadata.email)) {
+            parsedMetadata.email = parsedMetadata.email[0];
+          }
+        } catch (parseError) {
+          logger.warn(`Could not parse log metadata: ${parseError.message}`);
+          parsedMetadata = { raw: log.metadata };
+        }
+      }
+      
       return {
         id: log.$id,
         type: log.type,
         action: log.action,
         message: log.message,
         userId: log.userId,
-        metadata: log.metadata ? JSON.parse(log.metadata) : {},
+        metadata: parsedMetadata,
         ip: log.ip,
         createdAt: log.$createdAt // Use Appwrite's internal $createdAt field
       };
