@@ -51,7 +51,7 @@ exports.logActivity = (type, action, message = null) => {
  * Middleware to track API performance without creating logs
  * Useful for high-volume endpoints where full logging would be excessive
  */
-const trackPerformance = () => {
+exports.trackPerformance = () => {
   return (req, res, next) => {
     // Generate a unique request ID for tracking
     req.requestId = crypto.randomBytes(16).toString('hex');
@@ -64,7 +64,4 @@ const trackPerformance = () => {
   };
 };
 
-module.exports = {
-  logActivity,
-  trackPerformance
-}; 
+// No module.exports needed as we're using exports directly 
