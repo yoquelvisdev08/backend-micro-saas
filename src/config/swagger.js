@@ -20,21 +20,25 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: process.env.API_URL || 'http://localhost:5000',
+        url: process.env.API_URL || `http://localhost:${process.env.PORT || 5000}`,
         description: 'Servidor de desarrollo'
+      },
+      {
+        url: 'https://web-production-8d975.up.railway.app',
+        description: 'Servidor de producción (Railway)'
       }
     ],
     tags: [
       {
-        name: 'Auth',
+        name: 'Autenticación',
         description: 'Endpoints para autenticación y gestión de sesiones'
       },
       {
-        name: 'Users',
+        name: 'Usuarios',
         description: 'Endpoints para gestión de usuarios'
       },
       {
-        name: 'Sites',
+        name: 'Sitios',
         description: 'Endpoints para gestión y monitoreo de sitios web'
       },
       {
@@ -42,7 +46,7 @@ const swaggerOptions = {
         description: 'Endpoints para consulta y análisis de logs del sistema'
       },
       {
-        name: 'Stats',
+        name: 'Estadísticas',
         description: 'Endpoints para obtener estadísticas y métricas'
       },
       {
@@ -697,13 +701,17 @@ const setupSwagger = (app) => {
   // Ruta para acceder a la documentación
   app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     explorer: true,
-    customCss: '.swagger-ui .topbar { display: none }',
+    customCss: '.swagger-ui .topbar { display: none } .swagger-ui .information-container { margin-bottom: 30px; } .swagger-ui .scheme-container { margin: 0 0 20px; padding: 20px 0; }',
     customSiteTitle: 'Micro SaaS API Documentation',
     swaggerOptions: {
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
       docExpansion: 'none',
       filter: true,
       defaultModelsExpandDepth: 1,
-      defaultModelExpandDepth: 1
+      defaultModelExpandDepth: 1,
+      tryItOutEnabled: true,
+      persistAuthorization: true
     }
   }));
 

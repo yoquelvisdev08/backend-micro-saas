@@ -6,6 +6,13 @@ const { logActivity } = require('../middlewares/logger.middleware');
 
 /**
  * @swagger
+ * tags:
+ *   name: Autenticación
+ *   description: Endpoints para autenticación y gestión de sesiones
+ */
+
+/**
+ * @swagger
  * /api/auth/register:
  *   post:
  *     summary: Registrar un nuevo usuario

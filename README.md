@@ -153,39 +153,67 @@ npm test
 La documentación completa de la API está disponible en Swagger:
 
 ```
-http://localhost:5000/api/docs
+http://localhost:5001/api/docs
 ```
 
-### Principales endpoints
+O en producción:
 
-- **Auth**: `/api/auth/*`
-  - POST `/register`: Registrar usuario
-  - POST `/login`: Iniciar sesión
-  - GET `/me`: Obtener perfil
-  - POST `/logout`: Cerrar sesión
+```
+https://web-production-8d975.up.railway.app/api/docs
+```
 
-- **Sites**: `/api/sites/*`
-  - GET `/`: Listar todos los sitios
-  - POST `/`: Crear nuevo sitio
-  - GET `/:id`: Obtener un sitio
-  - PUT `/:id`: Actualizar sitio
-  - DELETE `/:id`: Eliminar sitio
+### Categorías de Endpoints
 
-- **Logs**: `/api/logs/*`
-  - GET `/`: Listar logs
+La API está organizada en las siguientes categorías (tags):
 
-- **Stats**: `/api/stats/*`
-  - GET `/`: Obtener estadísticas generales
-  - GET `/activity`: Obtener distribución de actividad
-  - GET `/user`: Obtener estadísticas del usuario autenticado
-  - GET `/user/:userId`: Obtener estadísticas de un usuario específico (admin)
-  - GET `/admin`: Obtener estadísticas de la plataforma (admin)
+- **Autenticación**: Endpoints para autenticación y gestión de sesiones
+  - `POST /api/auth/register`: Registrar usuario
+  - `POST /api/auth/login`: Iniciar sesión
+  - `GET /api/auth/me`: Obtener perfil
+  - `POST /api/auth/logout`: Cerrar sesión
 
-- **Admin**: `/api/admin/*`
-  - Diversos endpoints para gestión administrativa
+- **Usuarios**: Endpoints para gestión de usuarios
+  - `PUT /api/users/webhook`: Actualizar URL de webhook
+  - `DELETE /api/users/webhook`: Eliminar URL de webhook
+  - `POST /api/users/webhook/test`: Probar webhook
 
-- **User**: `/api/user/*`
-  - Endpoints para gestión de usuarios
+- **Sitios**: Endpoints para gestión y monitoreo de sitios web
+  - `GET /api/sites`: Listar todos los sitios
+  - `POST /api/sites`: Crear nuevo sitio
+  - `GET /api/sites/:id`: Obtener un sitio
+  - `PUT /api/sites/:id`: Actualizar sitio
+  - `DELETE /api/sites/:id`: Eliminar sitio
+
+- **Logs**: Endpoints para consulta y análisis de logs del sistema
+  - `GET /api/logs`: Listar logs con filtrado avanzado
+  - `GET /api/logs/export`: Exportar logs en CSV o JSON
+  - `GET /api/logs/stats`: Obtener estadísticas de logs
+  - `GET /api/logs/admin`: Obtener todos los logs (admin)
+  - `GET /api/logs/trends`: Obtener tendencias en logs
+
+- **Estadísticas**: Endpoints para obtener estadísticas y métricas
+  - `GET /api/stats`: Obtener estadísticas generales
+  - `GET /api/stats/activity`: Obtener distribución de actividad
+  - `GET /api/stats/user`: Obtener estadísticas del usuario autenticado
+  - `GET /api/stats/user/:userId`: Obtener estadísticas de un usuario específico (admin)
+  - `GET /api/stats/admin`: Obtener estadísticas de la plataforma (admin)
+
+- **Admin**: Endpoints exclusivos para administradores
+  - `GET /api/admin/users`: Obtener todos los usuarios
+  - `GET /api/admin/users/:id`: Obtener detalles de un usuario
+  - `DELETE /api/admin/users/:id`: Eliminar un usuario
+  - `PUT /api/admin/users/:id/role`: Actualizar rol de un usuario
+
+### Uso de la documentación de Swagger
+
+La documentación de Swagger proporciona una interfaz interactiva para explorar y probar la API:
+
+1. **Autenticación**: Utiliza el botón "Authorize" para introducir tu token JWT
+2. **Exploración**: Los endpoints están agrupados por tags para facilitar la navegación
+3. **Pruebas**: Cada endpoint puede ser probado en tiempo real con el botón "Try it out"
+4. **Modelos**: Puedes ver los modelos de datos en la sección "Schemas"
+
+Para obtener un token JWT, primero debes registrarte o iniciar sesión a través de los endpoints de autenticación.
 
 ## Despliegue en Railway
 
