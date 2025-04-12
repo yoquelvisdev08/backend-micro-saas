@@ -1,33 +1,28 @@
-const Site = require('../models/site.model');
-const { sendSuccessResponse, sendErrorResponse } = require('../utils/response.utils');
+const siteService = require('../services/site.service');
 const LogService = require('../services/log.service');
-const { notFound, badRequest } = require('../utils/error.utils');
+const { sendSuccessResponse, sendErrorResponse } = require('../utils/response.utils');
+const logger = require('../utils/logger');
 
 /**
- * @desc    Get all sites for a user
+ * @desc    Get all sites for logged in user
  * @route   GET /api/sites
  * @access  Private
  */
-exports.getSites = async (req, res, next) => {
+exports.getSites = async (req, res) => {
   try {
-    const sites = await Site.find({ userId: req.user.id });
+    const sites = await siteService.getUserSites(req.user.id);
     
-    // Log the sites view
     LogService.createLog({
       type: 'site',
-      action: 'view',
-      message: 'User viewed all sites',
-      userId: req.user.id,
-      metadata: { count: sites.length }
+      action: 'list',
+      message: 'User viewed their sites',
+      userId: req.user.id
     });
     
-    sendSuccessResponse(
-      res,
-      'Sitios obtenidos exitosamente',
-      { count: sites.length, sites }
-    );
+    sendSuccessResponse(res, 'Sites retrieved successfully', { sites });
   } catch (error) {
-    next(error);
+    logger.error('Error getting sites:', error);
+    sendErrorResponse(res, 'Error retrieving sites', 500);
   }
 };
 
@@ -36,29 +31,32 @@ exports.getSites = async (req, res, next) => {
  * @route   GET /api/sites/:id
  * @access  Private
  */
-exports.getSite = async (req, res, next) => {
+exports.getSite = async (req, res) => {
   try {
-    const site = await Site.findOne({
-      _id: req.params.id,
-      userId: req.user.id
-    });
+    const site = await siteService.getSiteById(req.params.id);
     
+    // Check if site exists
     if (!site) {
-      return next(notFound('Sitio'));
+      return sendErrorResponse(res, 'Site not found', 404);
     }
     
-    // Log the site view
+    // Check if site belongs to user
+    if (site.userId !== req.user.id && req.user.role !== 'admin') {
+      return sendErrorResponse(res, 'Not authorized to access this site', 403);
+    }
+    
     LogService.createLog({
       type: 'site',
       action: 'view',
-      message: `User viewed site: ${site.name}`,
+      message: `Viewed site: ${site.name}`,
       userId: req.user.id,
-      metadata: { siteId: site._id, siteName: site.name }
+      metadata: { siteId: site.id }
     });
     
-    sendSuccessResponse(res, 'Sitio obtenido exitosamente', { site });
+    sendSuccessResponse(res, 'Site retrieved successfully', { site });
   } catch (error) {
-    next(error);
+    logger.error('Error getting site:', error);
+    sendErrorResponse(res, 'Error retrieving site', 500);
   }
 };
 
@@ -67,40 +65,36 @@ exports.getSite = async (req, res, next) => {
  * @route   POST /api/sites
  * @access  Private
  */
-exports.createSite = async (req, res, next) => {
+exports.createSite = async (req, res) => {
   try {
     const { name, url } = req.body;
     
-    // Validación básica
+    // Validate input
     if (!name || !url) {
-      return next(badRequest('Por favor proporciona un nombre y url'));
+      return sendErrorResponse(res, 'Please provide name and url', 400);
     }
     
-    // Verificar si ya existe un sitio con la misma URL para este usuario
-    const existingSite = await Site.findOne({ url, userId: req.user.id });
-    if (existingSite) {
-      return next(badRequest('Ya tienes un sitio registrado con esta URL'));
-    }
+    // Create site
+    const site = await siteService.createSite(name, url, req.user.id);
     
-    // Crear el sitio
-    const site = await Site.create({
-      name,
-      url,
-      userId: req.user.id
-    });
-    
-    // Log the site creation
     LogService.createLog({
       type: 'site',
       action: 'create',
-      message: `User created site: ${site.name}`,
+      message: `Created new site: ${name}`,
       userId: req.user.id,
-      metadata: { siteId: site._id, siteName: site.name, siteUrl: site.url }
+      metadata: { siteId: site.id, name, url }
     });
     
-    sendSuccessResponse(res, 'Sitio creado exitosamente', { site }, 201);
+    sendSuccessResponse(res, 'Site created successfully', { site }, 201);
   } catch (error) {
-    next(error);
+    logger.error('Error creating site:', error);
+    
+    // Check for duplicate site error
+    if (error.message && error.message.includes('duplicate')) {
+      return sendErrorResponse(res, 'You already have a site with this URL', 400);
+    }
+    
+    sendErrorResponse(res, 'Error creating site', 500);
   }
 };
 
@@ -109,47 +103,49 @@ exports.createSite = async (req, res, next) => {
  * @route   PUT /api/sites/:id
  * @access  Private
  */
-exports.updateSite = async (req, res, next) => {
+exports.updateSite = async (req, res) => {
   try {
     const { name, url, status } = req.body;
     
-    // Verificar si el sitio existe y pertenece al usuario
-    let site = await Site.findOne({
-      _id: req.params.id,
-      userId: req.user.id
-    });
-    
-    if (!site) {
-      return next(notFound('Sitio'));
+    // Validate input
+    if (!name && !url && !status) {
+      return sendErrorResponse(res, 'Please provide name, url or status to update', 400);
     }
     
-    // Actualizar el sitio
-    site = await Site.findByIdAndUpdate(
-      req.params.id,
-      { name, url, status },
-      { new: true, runValidators: true }
-    );
+    // Get the site
+    const site = await siteService.getSiteById(req.params.id);
     
-    // Log the site update
+    // Check if site exists
+    if (!site) {
+      return sendErrorResponse(res, 'Site not found', 404);
+    }
+    
+    // Check ownership
+    if (site.userId !== req.user.id && req.user.role !== 'admin') {
+      return sendErrorResponse(res, 'Not authorized to update this site', 403);
+    }
+    
+    // Update data
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (url) updateData.url = url;
+    if (status) updateData.status = status;
+    
+    // Update site
+    const updatedSite = await siteService.updateSite(req.params.id, updateData);
+    
     LogService.createLog({
       type: 'site',
       action: 'update',
-      message: `User updated site: ${site.name}`,
+      message: `Updated site: ${updatedSite.name}`,
       userId: req.user.id,
-      metadata: { 
-        siteId: site._id,
-        siteName: site.name,
-        changes: {
-          name: name !== undefined,
-          url: url !== undefined,
-          status: status !== undefined
-        }
-      }
+      metadata: { siteId: updatedSite.id, changes: updateData }
     });
     
-    sendSuccessResponse(res, 'Sitio actualizado exitosamente', { site });
+    sendSuccessResponse(res, 'Site updated successfully', { site: updatedSite });
   } catch (error) {
-    next(error);
+    logger.error('Error updating site:', error);
+    sendErrorResponse(res, 'Error updating site', 500);
   }
 };
 
@@ -158,39 +154,35 @@ exports.updateSite = async (req, res, next) => {
  * @route   DELETE /api/sites/:id
  * @access  Private
  */
-exports.deleteSite = async (req, res, next) => {
+exports.deleteSite = async (req, res) => {
   try {
-    // Verificar si el sitio existe y pertenece al usuario
-    const site = await Site.findOne({
-      _id: req.params.id,
-      userId: req.user.id
-    });
+    // Get the site
+    const site = await siteService.getSiteById(req.params.id);
     
+    // Check if site exists
     if (!site) {
-      return next(notFound('Sitio'));
+      return sendErrorResponse(res, 'Site not found', 404);
     }
     
-    // Guardar información del sitio antes de eliminarlo para el log
-    const siteInfo = {
-      id: site._id,
-      name: site.name,
-      url: site.url
-    };
+    // Check ownership
+    if (site.userId !== req.user.id && req.user.role !== 'admin') {
+      return sendErrorResponse(res, 'Not authorized to delete this site', 403);
+    }
     
-    // Eliminar el sitio
-    await site.deleteOne();
+    // Delete site
+    await siteService.deleteSite(req.params.id);
     
-    // Log the site deletion
     LogService.createLog({
       type: 'site',
       action: 'delete',
-      message: `User deleted site: ${siteInfo.name}`,
+      message: `Deleted site: ${site.name}`,
       userId: req.user.id,
-      metadata: siteInfo
+      metadata: { siteId: req.params.id, name: site.name }
     });
     
-    sendSuccessResponse(res, 'Sitio eliminado exitosamente', {});
+    sendSuccessResponse(res, 'Site deleted successfully', null);
   } catch (error) {
-    next(error);
+    logger.error('Error deleting site:', error);
+    sendErrorResponse(res, 'Error deleting site', 500);
   }
 }; 

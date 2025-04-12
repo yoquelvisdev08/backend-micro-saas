@@ -1,57 +1,55 @@
-const LogService = require('../services/log.service');
+const logService = require('../services/log.service');
 const { sendSuccessResponse, sendErrorResponse } = require('../utils/response.utils');
+const logger = require('../utils/logger');
 
 /**
- * @desc    Get logs for the current user
+ * @desc    Get logs for current user
  * @route   GET /api/logs
  * @access  Private
  */
 exports.getLogs = async (req, res) => {
   try {
-    // Extract query parameters for filtering and pagination
-    const { 
-      type, 
-      action, 
-      page = 1, 
-      limit = 50, 
-      startDate, 
-      endDate 
-    } = req.query;
+    const { page = 1, limit = 50, type, action } = req.query;
     
-    // Build filters object
-    const filters = {};
+    // Prepare options for log query
+    const options = {
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+      type,
+      action
+    };
     
-    if (type) filters.type = type;
-    if (action) filters.action = action;
+    // Get logs
+    const result = await logService.getUserLogs(req.user.id, options);
     
-    // Add date range filter if provided
-    if (startDate || endDate) {
-      filters.createdAt = {};
-      if (startDate) filters.createdAt.$gte = new Date(startDate);
-      if (endDate) filters.createdAt.$lte = new Date(endDate);
-    }
+    // Create response with pagination
+    const response = {
+      logs: result.logs,
+      pagination: {
+        total: result.total,
+        page: options.page,
+        limit: options.limit,
+        pages: Math.ceil(result.total / options.limit)
+      }
+    };
     
-    // Get logs with pagination
-    const result = await LogService.getLogs(
-      req.user.id,
-      filters,
-      parseInt(limit),
-      parseInt(page)
-    );
-    
-    // Log this activity
-    LogService.createLog({
-      type: 'system',
-      action: 'view',
-      message: 'User viewed their activity logs',
-      userId: req.user.id,
-      metadata: { filters, pagination: result.pagination }
-    });
-    
-    sendSuccessResponse(res, 'Logs obtenidos exitosamente', result);
+    sendSuccessResponse(res, 'Logs retrieved successfully', response);
   } catch (error) {
-    console.error(error);
-    sendErrorResponse(res, 'Error obteniendo logs', 500);
+    logger.error('Error retrieving logs:', error);
+    sendErrorResponse(res, 'Error retrieving logs', 500);
+  }
+};
+
+/**
+ * @desc    Create a log (internal use only)
+ * @access  Private
+ */
+exports.createLog = async (logData) => {
+  try {
+    return await logService.createLog(logData);
+  } catch (error) {
+    logger.error('Error creating log:', error);
+    return null;
   }
 };
 
@@ -62,7 +60,7 @@ exports.getLogs = async (req, res) => {
  */
 exports.getLogStats = async (req, res) => {
   try {
-    const stats = await LogService.getLogStats(req.user.id);
+    const stats = await logService.getLogStats(req.user.id);
     
     sendSuccessResponse(res, 'Estadísticas de logs obtenidas exitosamente', { stats });
   } catch (error) {

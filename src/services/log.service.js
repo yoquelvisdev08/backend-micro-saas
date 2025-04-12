@@ -1,144 +1,227 @@
-const mongoose = require('mongoose');
-const Log = require('../models/log.model');
-const WebhookService = require('./webhook.service');
+const { databases, DATABASE_ID, LOGS_COLLECTION_ID, Query, ID } = require('../config/appwrite');
+const logger = require('../utils/logger');
 
 /**
- * Service to register activity logs in the system
+ * Log Service - Handles all log operations with Appwrite
  */
 class LogService {
   /**
    * Create a new log entry
    * @param {Object} logData - Log data
-   * @param {String} logData.type - Type of log (auth, site, system, error)
-   * @param {String} logData.action - Action performed (login, register, create, update, delete, etc)
-   * @param {String} logData.message - Log message
-   * @param {String} logData.userId - User ID associated with the log
-   * @param {Object} logData.metadata - Additional metadata (optional)
-   * @param {String} logData.ip - IP address (optional)
-   * @param {Boolean} logData.sendWebhook - Whether to send webhook notification (default: true)
-   * @returns {Promise<Object>} - Created log
+   * @returns {Object} - Created log
    */
-  static async createLog(logData) {
+  async createLog(logData) {
     try {
-      // Extract webhook flag and default to true if not specified
-      const { sendWebhook = true, ...logEntryData } = logData;
+      const { type, action, message, userId, metadata = {}, ip = null } = logData;
       
-      // Create the log entry
-      const log = await Log.create(logEntryData);
-      
-      // Check if a webhook notification should be sent
-      if (sendWebhook && logEntryData.userId) {
-        // Send webhook notification asynchronously
-        // We don't await the result to avoid blocking the main flow
-        this.sendLogWebhook(logEntryData.userId, log).catch(err => {
-          // Just log webhook errors, don't throw
-          console.error('Webhook notification error:', err.message);
-        });
+      // Validate required fields
+      if (!type || !action || !userId) {
+        logger.warn('Missing required fields for log creation');
+        return null;
       }
       
-      return log;
+      // Prepare log document with minimal fields
+      const logDocument = {
+        type,
+        action,
+        message: message || `${type}:${action}`,
+        userId,
+        // Ensure metadata is a string
+        metadata: typeof metadata === 'object' ? JSON.stringify(metadata) : String(metadata),
+        createdAt: new Date().toISOString()
+      };
+      
+      // Only add IP if provided
+      if (ip) {
+        logDocument.ip = ip;
+      }
+      
+      logger.debug(`Creating log entry: ${type}:${action} for user ${userId}`);
+      
+      const log = await databases.createDocument(
+        DATABASE_ID,
+        LOGS_COLLECTION_ID,
+        ID.unique(),
+        logDocument
+      );
+      
+      logger.debug(`Log created successfully with ID: ${log.$id}`);
+      
+      return this.formatLog(log);
     } catch (error) {
-      console.error('Error creating log:', error);
-      // Even if logging fails, we don't want to break the main application flow
+      logger.error(`Error creating log: ${error.message}`);
+      
+      // Log additional details if available
+      if (error.response) {
+        logger.error(`Appwrite error details: ${JSON.stringify(error.response)}`);
+      }
+      
+      // Don't throw to prevent breaking app flow
       return null;
     }
   }
-
+  
   /**
-   * Send log data to user's webhook if configured
-   * @param {String} userId - User ID
-   * @param {Object} log - Log data
-   * @returns {Promise<Object>} - Webhook response
+   * Get logs for a user
+   * @param {string} userId - User ID
+   * @param {Object} options - Query options
+   * @returns {Array} - List of logs
    */
-  static async sendLogWebhook(userId, log) {
-    // Prepare data payload for webhook
-    const webhookData = {
-      event: 'log_created',
-      log: {
-        id: log._id,
+  async getUserLogs(userId, options = {}) {
+    try {
+      const { limit = 100, page = 1 } = options;
+      
+      const queries = [Query.equal('userId', userId)];
+      
+      // Add type filter if provided
+      if (options.type) {
+        queries.push(Query.equal('type', options.type));
+      }
+      
+      // Add action filter if provided
+      if (options.action) {
+        queries.push(Query.equal('action', options.action));
+      }
+      
+      // Sort by createdAt descending
+      queries.push(Query.orderDesc('createdAt'));
+      
+      logger.debug(`Fetching logs for user: ${userId}`);
+      
+      const logs = await databases.listDocuments(
+        DATABASE_ID,
+        LOGS_COLLECTION_ID,
+        queries,
+        limit,
+        (page - 1) * limit
+      );
+      
+      logger.debug(`Found ${logs.total} logs for user ${userId}`);
+      
+      return {
+        total: logs.total,
+        logs: logs.documents.map(this.formatLog)
+      };
+    } catch (error) {
+      logger.error(`Error getting user logs: ${error.message}`);
+      // Return empty results instead of throwing
+      return {
+        total: 0,
+        logs: []
+      };
+    }
+  }
+  
+  /**
+   * Get all logs (admin only)
+   * @param {Object} options - Query options
+   * @returns {Array} - List of logs
+   */
+  async getAllLogs(options = {}) {
+    try {
+      const { limit = 100, page = 1 } = options;
+      
+      const queries = [];
+      
+      // Add userId filter if provided
+      if (options.userId) {
+        queries.push(Query.equal('userId', options.userId));
+      }
+      
+      // Add type filter if provided
+      if (options.type) {
+        queries.push(Query.equal('type', options.type));
+      }
+      
+      // Add action filter if provided
+      if (options.action) {
+        queries.push(Query.equal('action', options.action));
+      }
+      
+      // Sort by createdAt descending
+      queries.push(Query.orderDesc('createdAt'));
+      
+      logger.debug('Fetching all logs');
+      
+      const logs = await databases.listDocuments(
+        DATABASE_ID,
+        LOGS_COLLECTION_ID,
+        queries,
+        limit,
+        (page - 1) * limit
+      );
+      
+      logger.debug(`Found ${logs.total} logs total`);
+      
+      return {
+        total: logs.total,
+        logs: logs.documents.map(this.formatLog)
+      };
+    } catch (error) {
+      logger.error(`Error getting all logs: ${error.message}`);
+      // Return empty results instead of throwing
+      return {
+        total: 0,
+        logs: []
+      };
+    }
+  }
+  
+  /**
+   * Count logs for a user
+   * @param {string} userId - User ID
+   * @returns {number} - Count of logs
+   */
+  async countUserLogs(userId) {
+    try {
+      logger.debug(`Counting logs for user: ${userId}`);
+      
+      const logs = await databases.listDocuments(
+        DATABASE_ID,
+        LOGS_COLLECTION_ID,
+        [Query.equal('userId', userId)]
+      );
+      
+      logger.debug(`Found ${logs.total} logs for user ${userId}`);
+      
+      return logs.total;
+    } catch (error) {
+      logger.error(`Error counting user logs: ${error.message}`);
+      return 0;
+    }
+  }
+  
+  /**
+   * Format log data from Appwrite format
+   * @param {Object} log - Log from Appwrite
+   * @returns {Object} - Formatted log
+   */
+  formatLog(log) {
+    try {
+      return {
+        id: log.$id,
         type: log.type,
         action: log.action,
         message: log.message,
-        timestamp: log.createdAt || new Date(),
-        metadata: log.metadata || {}
-      }
-    };
-    
-    // Send webhook notification
-    return WebhookService.sendWebhook(userId, webhookData);
-  }
-
-  /**
-   * Get logs for a specific user
-   * @param {String} userId - User ID
-   * @param {Object} filters - Optional filters
-   * @param {Number} limit - Number of logs to return (default: 50)
-   * @param {Number} page - Page number for pagination (default: 1)
-   * @returns {Promise<Object>} - Logs with pagination info
-   */
-  static async getLogs(userId, filters = {}, limit = 50, page = 1) {
-    try {
-      const query = { userId, ...filters };
-      const skip = (page - 1) * limit;
-
-      const [logs, total] = await Promise.all([
-        Log.find(query)
-          .sort({ createdAt: -1 })
-          .skip(skip)
-          .limit(limit),
-        Log.countDocuments(query)
-      ]);
-
-      return {
-        logs,
-        pagination: {
-          total,
-          page,
-          limit,
-          pages: Math.ceil(total / limit)
-        }
+        userId: log.userId,
+        metadata: log.metadata ? JSON.parse(log.metadata) : {},
+        ip: log.ip,
+        createdAt: log.createdAt
       };
     } catch (error) {
-      console.error('Error getting logs:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get logs statistics for a user
-   * @param {String} userId - User ID
-   * @returns {Promise<Object>} - Log statistics
-   */
-  static async getLogStats(userId) {
-    try {
-      const stats = await Log.aggregate([
-        { $match: { userId: new mongoose.Types.ObjectId(userId) } },
-        { 
-          $group: { 
-            _id: { type: '$type', action: '$action' },
-            count: { $sum: 1 }
-          } 
-        },
-        {
-          $group: {
-            _id: '$_id.type',
-            actions: { 
-              $push: { 
-                action: '$_id.action', 
-                count: '$count' 
-              } 
-            },
-            total: { $sum: '$count' }
-          }
-        }
-      ]);
-
-      return stats;
-    } catch (error) {
-      console.error('Error getting log statistics:', error);
-      throw error;
+      logger.error(`Error formatting log: ${error.message}`);
+      // Return basic log if parsing fails
+      return {
+        id: log.$id,
+        type: log.type,
+        action: log.action,
+        message: log.message,
+        userId: log.userId,
+        metadata: {},
+        createdAt: log.createdAt
+      };
     }
   }
 }
 
-module.exports = LogService; 
+module.exports = new LogService(); 

@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/user.model');
-const tokenMiddleware = require('./token.middleware');
+const { databases, DATABASE_ID, USERS_COLLECTION_ID, Query } = require('../config/appwrite');
 const { sendErrorResponse } = require('../utils/response.utils');
+const logger = require('../utils/logger');
 
-// Protect routes
+// Protect routes - verifies JWT token and attaches user to request
 exports.protect = async (req, res, next) => {
   let token;
 
@@ -18,42 +18,44 @@ exports.protect = async (req, res, next) => {
 
   // Make sure token exists
   if (!token) {
+    logger.warn('No token provided in request');
     return sendErrorResponse(res, 'Not authorized to access this route', 401);
   }
 
   try {
-    // First check if token is in Redis cache
-    const userFromRedis = await tokenMiddleware.verifyTokenInRedis(token);
-    
-    if (userFromRedis) {
-      // If found in Redis cache, set user and continue
-      req.user = userFromRedis;
-      return next();
-    }
-    
-    // If not in Redis, verify the JWT token
+    // Verify JWT token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Get user from database
-    const user = await User.findById(decoded.id);
+    logger.info(`Token verified for user ID: ${decoded.id}`);
     
-    if (!user) {
+    // Get user from Appwrite database
+    let user;
+    
+    try {
+      // Try direct document lookup by ID
+      user = await databases.getDocument(
+        DATABASE_ID,
+        USERS_COLLECTION_ID,
+        decoded.id
+      );
+      logger.info(`User found: ${user.$id}`);
+    } catch (error) {
+      logger.error(`Error retrieving user: ${error.message}`);
       return sendErrorResponse(res, 'User not found', 401);
     }
     
-    // Store token in Redis for future requests
-    await tokenMiddleware.storeToken(token, user);
-    
-    // Add user to request
+    // Add user to request with default role
     req.user = {
-      id: user._id,
+      id: user.$id,
       email: user.email,
-      role: user.role,
+      // Always use 'user' as default role since we don't store roles in Appwrite
+      role: 'user',
       name: user.name
     };
     
+    logger.info(`User authenticated: ${user.$id}`);
     next();
   } catch (err) {
+    logger.error(`Authentication error: ${err.message}`);
     return sendErrorResponse(res, 'Not authorized to access this route', 401);
   }
 };
@@ -62,16 +64,24 @@ exports.protect = async (req, res, next) => {
 exports.authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
+      logger.warn('No user object in request');
       return sendErrorResponse(res, 'Not authorized to access this route', 401);
     }
 
-    if (!roles.includes(req.user.role)) {
+    // We always use 'user' role as default
+    const userRole = 'user';
+    logger.info(`Checking authorization for user ${req.user.id} with role: ${userRole}`);
+
+    if (!roles.includes(userRole)) {
+      logger.warn(`Access denied: User ${req.user.id} with role ${userRole} tried to access route restricted to ${roles.join(', ')}`);
       return sendErrorResponse(
         res,
-        `User role ${req.user.role} is not authorized to access this route`,
+        `Access denied: Required roles: ${roles.join(', ')}`,
         403
       );
     }
+    
+    logger.info(`User ${req.user.id} authorized for role: ${userRole}`);
     next();
   };
 };

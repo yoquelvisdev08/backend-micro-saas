@@ -55,6 +55,8 @@ const logActivity = (type, action, customMessage = null) => {
           userId: req.user.id,
           metadata,
           ip
+        }).catch(err => {
+          console.error('Error logging activity:', err);
         });
       }
       

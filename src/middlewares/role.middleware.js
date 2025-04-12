@@ -14,6 +14,32 @@ exports.isAdmin = (req, res, next) => {
 };
 
 /**
+ * Middleware to restrict access to specific roles
+ * @param {String} role - Required role (or roles separated by comma)
+ * @returns {Function} Middleware function
+ */
+exports.restrictTo = (role) => {
+  const roles = role.split(',').map(r => r.trim());
+  
+  return (req, res, next) => {
+    // Check if user exists and has the required role
+    if (!req.user) {
+      return sendErrorResponse(res, 'You must be logged in to access this resource', 401);
+    }
+    
+    if (!roles.includes(req.user.role)) {
+      return sendErrorResponse(
+        res, 
+        `Access denied: Required role: ${role}`, 
+        403
+      );
+    }
+    
+    next();
+  };
+};
+
+/**
  * Middleware to check if user has specific roles
  * @param {Array} roles - Array of allowed roles
  * @returns {Function} Middleware function

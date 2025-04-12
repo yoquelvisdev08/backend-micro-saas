@@ -10,7 +10,7 @@ const {
 const { protect } = require('../middlewares/auth.middleware');
 const { isResourceOwnerOrAdmin } = require('../middlewares/role.middleware');
 const { logActivity } = require('../middlewares/logger.middleware');
-const siteService = require('../services/site.service');
+const Site = require('../models/site.model');
 
 // Todas las rutas requieren autenticación
 router.use(protect);
@@ -142,13 +142,8 @@ router.route('/')
 
 // Función para obtener el ID de usuario de un sitio
 const getSiteUserId = async (req) => {
-  try {
-    const site = await siteService.getSiteById(req.params.id);
-    return site ? site.userId : null;
-  } catch (error) {
-    console.error('Error al obtener el ID de usuario del sitio:', error);
-    return null;
-  }
+  const site = await Site.findById(req.params.id);
+  return site ? site.userId : null;
 };
 
 /**
@@ -264,10 +259,12 @@ const getSiteUserId = async (req) => {
  *                     updatedAt:
  *                       type: string
  *                       format: date-time
+ *       400:
+ *         description: Error de validación
  *       401:
  *         description: No autorizado
  *       403:
- *         description: Prohibido - No tienes permiso para acceder a este recurso
+ *         description: Prohibido - No tienes permiso para actualizar este recurso
  *       404:
  *         description: Sitio no encontrado
  *       500:
@@ -302,15 +299,27 @@ const getSiteUserId = async (req) => {
  *       401:
  *         description: No autorizado
  *       403:
- *         description: Prohibido - No tienes permiso para acceder a este recurso
+ *         description: Prohibido - No tienes permiso para eliminar este recurso
  *       404:
  *         description: Sitio no encontrado
  *       500:
  *         description: Error del servidor
  */
 router.route('/:id')
-  .get(isResourceOwnerOrAdmin(getSiteUserId), logActivity('site', 'view'), getSite)
-  .put(isResourceOwnerOrAdmin(getSiteUserId), logActivity('site', 'update'), updateSite)
-  .delete(isResourceOwnerOrAdmin(getSiteUserId), logActivity('site', 'delete'), deleteSite);
+  .get(
+    isResourceOwnerOrAdmin(getSiteUserId),
+    logActivity('site', 'view'),
+    getSite
+  )
+  .put(
+    isResourceOwnerOrAdmin(getSiteUserId),
+    logActivity('site', 'update'),
+    updateSite
+  )
+  .delete(
+    isResourceOwnerOrAdmin(getSiteUserId),
+    logActivity('site', 'delete'),
+    deleteSite
+  );
 
 module.exports = router; 

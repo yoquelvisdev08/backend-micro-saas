@@ -28,11 +28,8 @@ setupSwagger(app);
 
 // Root route
 app.get('/', (req, res) => {
-  res.send('Welcome to the Backend Micro SaaS API');
+  res.send('Welcome to the Backend Micro SaaS API - Powered by Appwrite');
 });
-
-// Console log info
-console.log('Swagger Docs disponible en /api/docs');
 
 // Routes
 app.use('/api/auth', require('./src/routes/auth.routes'));
@@ -42,7 +39,7 @@ app.use('/api/stats', require('./src/routes/stats.routes'));
 app.use('/api/users', require('./src/routes/user.routes'));
 app.use('/api/admin', require('./src/routes/admin.routes'));
 
-// Add a test route
+// Test route
 app.get('/api/test', (req, res) => {
   res.send('API funcionando correctamente con Appwrite!');
 });

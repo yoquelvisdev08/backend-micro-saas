@@ -1,8 +1,11 @@
-const { redisClient } = require('../config/redis');
 const { sendSuccessResponse } = require('../utils/response.utils');
 
+// Caché en memoria simple (solo para desarrollo)
+// En producción, esto debería ser reemplazado por una solución persistente y escalable
+const memoryCache = new Map();
+
 /**
- * Middleware para cachear respuestas de API
+ * Middleware para cachear respuestas de API en memoria
  * @param {number} duration - Duración del caché en segundos (opcional, por defecto 60 segundos)
  * @returns {function} - Middleware Express
  */
@@ -23,32 +26,35 @@ exports.cacheResponse = (duration = 60) => {
       const cacheKey = `cache:${req.originalUrl}`;
 
       // Verificar si hay datos en caché
-      const cachedData = await redisClient.get(cacheKey);
-
-      if (cachedData) {
-        // Si existe caché, enviar respuesta directamente desde caché
-        const data = JSON.parse(cachedData);
+      const cachedData = memoryCache.get(cacheKey);
+      
+      if (cachedData && cachedData.expiry > Date.now()) {
+        // Si existe caché y no ha expirado, enviar respuesta directamente desde caché
+        const data = cachedData.data;
         res.set('X-Cache', 'HIT');
         return sendSuccessResponse(res, data.message, data.data);
       }
 
-      // Si no hay caché, modificar el método res.send para guardar en caché
+      // Si no hay caché o ha expirado, modificar el método res.send para guardar en caché
       const originalSend = res.send;
       res.send = function(body) {
         // Solo cachear respuestas exitosas
         if (res.statusCode >= 200 && res.statusCode < 300) {
           // Analizar el cuerpo JSON
-          const parsedBody = JSON.parse(body);
-          if (parsedBody.success) {
-            // Guardar en caché
-            redisClient.setEx(
-              cacheKey,
-              duration,
-              JSON.stringify({
-                message: parsedBody.message,
-                data: parsedBody.data
-              })
-            ).catch(err => console.error('Redis cache error:', err));
+          try {
+            const parsedBody = JSON.parse(body);
+            if (parsedBody.success) {
+              // Guardar en caché con tiempo de expiración
+              memoryCache.set(cacheKey, {
+                data: {
+                  message: parsedBody.message,
+                  data: parsedBody.data
+                },
+                expiry: Date.now() + (duration * 1000)
+              });
+            }
+          } catch (e) {
+            console.error('Error parsing response body for cache:', e);
           }
         }
         
@@ -84,13 +90,20 @@ exports.invalidateCache = (keyPattern) => {
       
       if (modifyMethods.includes(req.method) && res.statusCode >= 200 && res.statusCode < 300) {
         try {
-          // Obtener claves que coinciden con el patrón
-          const keys = await redisClient.keys(keyPattern);
+          // Convertir patrón simple con asteriscos a RegExp
+          const regex = new RegExp(keyPattern.replace('*', '.*'));
           
-          // Si hay claves para eliminar
-          if (keys.length > 0) {
-            await redisClient.del(keys);
-            console.log(`Invalidated cache for pattern: ${keyPattern} (${keys.length} keys)`);
+          // Eliminar claves que coinciden con el patrón
+          let count = 0;
+          for (const key of memoryCache.keys()) {
+            if (regex.test(key)) {
+              memoryCache.delete(key);
+              count++;
+            }
+          }
+          
+          if (count > 0) {
+            console.log(`Invalidated cache for pattern: ${keyPattern} (${count} keys)`);
           }
         } catch (error) {
           console.error('Cache invalidation error:', error);

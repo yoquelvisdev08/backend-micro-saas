@@ -1,5 +1,4 @@
-const mongoose = require('mongoose');
-const { connectTestDB, disconnectTestDB } = require('../config/db.test');
+const { connectTestDB, disconnectTestDB, databases, DATABASE_ID } = require('../config/appwrite.test');
 
 describe('Database Connection', () => {
   beforeAll(async () => {
@@ -10,7 +9,10 @@ describe('Database Connection', () => {
     await disconnectTestDB();
   });
 
-  it('should connect to MongoDB Atlas', () => {
-    expect(mongoose.connection.readyState).toBe(1);
+  it('should connect to Appwrite database', async () => {
+    // Test if we can get database info
+    const database = await databases.get(DATABASE_ID);
+    expect(database).toBeDefined();
+    expect(database.$id).toBe(DATABASE_ID);
   });
 }); 

@@ -1,105 +1,80 @@
 /**
  * token.middleware.js
- * Middleware para gestionar tokens JWT con Redis
+ * Middleware para gestionar tokens JWT
  */
-const { getRedisClient, isRedisConnected } = require('../config/redis');
 const jwt = require('jsonwebtoken');
 
+// Mantenemos un array en memoria para tokens inválidos (solo para la sesión actual)
+// En producción, esto debería ser reemplazado por una solución persistente como Appwrite
+const invalidTokens = new Set();
+
 /**
- * Almacena un token JWT en Redis
+ * Almacena un token JWT (simulando el almacenamiento)
  * @param {string} token - Token JWT
  * @param {Object} userData - Datos del usuario a almacenar
  * @param {number} expiryTime - Tiempo de expiración en segundos
  */
 exports.storeToken = async (token, userData, expiryTime = 3600) => {
   try {
-    const redisClient = getRedisClient();
-    if (!redisClient || !isRedisConnected()) {
-      console.log('Redis no disponible para almacenar token, continuando sin caché');
-      return false;
-    }
-    
-    const redisKey = `token:${token}`;
-    
-    // Solo almacenar datos no sensibles
-    const safeUserData = {
-      id: userData._id || userData.id,
-      email: userData.email,
-      role: userData.role
-    };
-    
-    await redisClient.setEx(redisKey, expiryTime, JSON.stringify(safeUserData));
+    // Ya no almacenamos en Redis, sino que validamos con JWT directamente
     return true;
   } catch (error) {
-    console.error('Error storing token in Redis:', error);
+    console.error('Error storing token:', error);
     return false;
   }
 };
 
 /**
- * Verifica un token en Redis
+ * Verifica un token
  * @param {string} token - Token JWT a verificar
  * @returns {Object|null} - Datos del usuario o null si no es válido
  */
 exports.verifyTokenInRedis = async (token) => {
   try {
-    const redisClient = getRedisClient();
-    if (!redisClient || !isRedisConnected()) {
+    // Verificar si el token está invalidado (logout)
+    if (invalidTokens.has(token)) {
       return null;
     }
     
-    const redisKey = `token:${token}`;
-    
-    const userData = await redisClient.get(redisKey);
-    return userData ? JSON.parse(userData) : null;
+    // Verificar el token con JWT
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return decoded;
   } catch (error) {
-    console.error('Error verifying token in Redis:', error);
+    console.error('Error verifying token:', error);
     return null;
   }
 };
 
 /**
- * Elimina un token de Redis
+ * Elimina un token (lo marca como inválido)
  * @param {string} token - Token JWT a eliminar
  */
 exports.removeToken = async (token) => {
   try {
-    const redisClient = getRedisClient();
-    if (!redisClient || !isRedisConnected()) {
-      return false;
-    }
-    
-    const redisKey = `token:${token}`;
-    
-    await redisClient.del(redisKey);
+    // Agregamos el token a la lista de tokens inválidos
+    invalidTokens.add(token);
     return true;
   } catch (error) {
-    console.error('Error removing token from Redis:', error);
+    console.error('Error removing token:', error);
     return false;
   }
 };
 
 /**
- * Crea un token JWT y lo almacena en Redis
+ * Crea un token JWT
  * @param {Object} user - Usuario para el que crear el token
  * @returns {string} - Token JWT generado
  */
 exports.createAndStoreToken = async (user) => {
   // Obtener el tiempo de expiración de las variables de entorno o usar valor por defecto
-  const jwtExpire = process.env.JWT_EXPIRE || '24h';
-  const jwtExpireSeconds = typeof jwtExpire === 'string' && jwtExpire.endsWith('h') 
-    ? parseInt(jwtExpire) * 3600 
-    : 86400; // 24 horas por defecto
+  const jwtExpire = process.env.JWT_EXPIRES_IN || '24h';
   
   // Crear token JWT
   const token = jwt.sign(
-    { id: user._id, role: user.role },
+    { id: user.$id || user.id || user._id, role: user.role },
     process.env.JWT_SECRET,
     { expiresIn: jwtExpire }
   );
-  
-  // Almacenar en Redis (si está disponible)
-  await this.storeToken(token, user, jwtExpireSeconds);
   
   return token;
 }; 

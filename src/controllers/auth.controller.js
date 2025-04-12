@@ -1,7 +1,6 @@
-const User = require('../models/user.model');
-const { sendSuccessResponse, sendErrorResponse } = require('../utils/response.utils');
+const authService = require('../services/auth.service');
 const LogService = require('../services/log.service');
-const tokenMiddleware = require('../middlewares/token.middleware');
+const { sendSuccessResponse, sendErrorResponse } = require('../utils/response.utils');
 const logger = require('../utils/logger');
 
 /**
@@ -18,40 +17,43 @@ exports.register = async (req, res) => {
       return sendErrorResponse(res, 'Please provide name, email and password', 400);
     }
 
-    // Check if user exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return sendErrorResponse(res, 'Email already in use', 400);
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return sendErrorResponse(res, 'Please provide a valid email address', 400);
     }
 
-    // Create user
-    const user = await User.create({
-      name,
-      email,
-      password
-    });
+    // Validate password strength
+    if (password.length < 8) {
+      return sendErrorResponse(res, 'Password must be at least 8 characters long', 400);
+    }
 
-    // Create token and store in Redis
-    const token = await tokenMiddleware.createAndStoreToken(user);
-    logger.info(`Usuario registrado y token almacenado en Redis: ${email}`);
+    logger.info(`Attempting to register user: ${email}`);
+
+    // Register the user via auth service
+    const { user, token } = await authService.register(name, email, password);
+    
+    logger.info(`User registered successfully: ${email}`);
 
     // Log the registration
     LogService.createLog({
       type: 'auth',
       action: 'register',
-      message: `User registered: ${user.email}`,
-      userId: user._id,
+      message: `User registered: ${email}`,
+      userId: user.id,
       metadata: { name: user.name, email: user.email }
+    }).catch(err => {
+      logger.error('Error logging registration:', err);
     });
 
     sendSuccessResponse(
       res,
       'User registered successfully',
-      { token, user: { id: user._id, name: user.name, email: user.email, role: user.role } },
+      { token, user },
       201
     );
   } catch (error) {
-    console.error(error);
+    logger.error('Error registering user:', error);
     sendErrorResponse(res, 'Error registering user', 500);
   }
 };
@@ -70,40 +72,33 @@ exports.login = async (req, res) => {
       return sendErrorResponse(res, 'Please provide email and password', 400);
     }
 
-    // Check if user exists
-    const user = await User.findOne({ email }).select('+password');
-    if (!user) {
-      return sendErrorResponse(res, 'Invalid credentials', 401);
-    }
+    logger.info(`Attempting login for user: ${email}`);
 
-    // Check if password matches
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
-      return sendErrorResponse(res, 'Invalid credentials', 401);
-    }
-
-    // Create token and store in Redis
-    const token = await tokenMiddleware.createAndStoreToken(user);
-    logger.info(`Usuario autenticado y token almacenado en Redis: ${email}`);
+    // Login via auth service
+    const { token, user } = await authService.createSession(email, password);
+    
+    logger.info(`User logged in successfully: ${email}`);
 
     // Log the login
     LogService.createLog({
       type: 'auth',
       action: 'login',
-      message: `User logged in: ${user.email}`,
-      userId: user._id,
-      metadata: { email: user.email },
+      message: `User logged in: ${email}`,
+      userId: user.id,
+      metadata: { email },
       ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress
+    }).catch(err => {
+      logger.error('Error logging login:', err);
     });
 
     sendSuccessResponse(
       res,
       'Login successful',
-      { token, user: { id: user._id, name: user.name, email: user.email, role: user.role } }
+      { token, user }
     );
   } catch (error) {
-    console.error(error);
-    sendErrorResponse(res, 'Error during login', 500);
+    logger.error('Error during login:', error);
+    sendErrorResponse(res, 'Invalid credentials', 401);
   }
 };
 
@@ -114,7 +109,7 @@ exports.login = async (req, res) => {
  */
 exports.getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await authService.getUserById(req.user.id);
 
     // Log the profile access
     LogService.createLog({
@@ -123,15 +118,17 @@ exports.getMe = async (req, res) => {
       message: 'User viewed their profile',
       userId: req.user.id,
       ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress
+    }).catch(err => {
+      logger.error('Error logging profile view:', err);
     });
 
     sendSuccessResponse(
       res, 
       'User fetched successfully', 
-      { user: { id: user._id, name: user.name, email: user.email, role: user.role, plan: user.plan } }
+      { user }
     );
   } catch (error) {
-    console.error(error);
+    logger.error('Error fetching user:', error);
     sendErrorResponse(res, 'Error fetching user', 500);
   }
 };
@@ -143,14 +140,8 @@ exports.getMe = async (req, res) => {
  */
 exports.logout = async (req, res) => {
   try {
-    // Get token from auth header
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    if (token) {
-      // Remove token from Redis
-      const tokenRemoved = await tokenMiddleware.removeToken(token);
-      logger.info(`Token eliminado de Redis: ${tokenRemoved ? 'Éxito' : 'No encontrado'}`);
-    }
+    // Logout via auth service
+    await authService.logout();
     
     // Log the logout
     LogService.createLog({
@@ -159,11 +150,13 @@ exports.logout = async (req, res) => {
       message: 'User logged out',
       userId: req.user.id,
       ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress
+    }).catch(err => {
+      logger.error('Error logging logout:', err);
     });
     
     sendSuccessResponse(res, 'Logged out successfully', null);
   } catch (error) {
-    console.error('Logout error:', error);
+    logger.error('Logout error:', error);
     sendErrorResponse(res, 'Error during logout', 500);
   }
 }; 

@@ -1,76 +1,11 @@
-const mongoose = require('mongoose');
-const Site = require('../models/site.model');
-const Log = require('../models/log.model');
-const User = require('../models/user.model');
-const { sendSuccessResponse, sendErrorResponse } = require('../utils/response.utils');
+const { databases, DATABASE_ID, LOGS_COLLECTION_ID, SITES_COLLECTION_ID, Query, ID } = require('../config/appwrite');
 const LogService = require('../services/log.service');
+const statsService = require('../services/stats.service');
+const { catchAsync } = require('../utils/errorHandler');
+const { sendSuccessResponse, sendErrorResponse } = require('../utils/response.utils');
 
 /**
- * @desc    Get statistics for the current user
- * @route   GET /api/stats
- * @access  Private
- */
-exports.getStats = async (req, res) => {
-  try {
-    const userId = req.user.id;
-
-    // Execute multiple queries in parallel for better performance
-    const [
-      sitesCount,
-      logsCount,
-      lastLogin,
-      lastWeekActivity
-    ] = await Promise.all([
-      // Count total sites for the user
-      Site.countDocuments({ userId }),
-      
-      // Count total logs for the user
-      Log.countDocuments({ userId }),
-      
-      // Get the last login timestamp
-      Log.findOne({ 
-        userId, 
-        type: 'auth', 
-        action: 'login' 
-      }).sort({ createdAt: -1 }).select('createdAt'),
-      
-      // Get activity counts by day for the last 7 days
-      getLastWeekActivity(userId)
-    ]);
-
-    // Format the statistics
-    const stats = {
-      sites: {
-        total: sitesCount
-      },
-      logs: {
-        total: logsCount
-      },
-      user: {
-        lastLogin: lastLogin ? lastLogin.createdAt : null
-      },
-      activity: {
-        lastWeek: lastWeekActivity
-      }
-    };
-
-    // Log this activity
-    LogService.createLog({
-      type: 'system',
-      action: 'view',
-      message: 'User viewed their statistics',
-      userId: req.user.id
-    });
-
-    sendSuccessResponse(res, 'Estadísticas obtenidas exitosamente', { stats });
-  } catch (error) {
-    console.error(error);
-    sendErrorResponse(res, 'Error obteniendo estadísticas', 500);
-  }
-};
-
-/**
- * Get activity counts by day for the last 7 days
+ * Get activity counts by day for the last 7 days using Appwrite
  * @param {String} userId - User ID
  * @returns {Promise<Array>} - Activity by day
  */
@@ -79,34 +14,19 @@ const getLastWeekActivity = async (userId) => {
   const lastWeek = new Date();
   lastWeek.setDate(lastWeek.getDate() - 7);
   
-  // MongoDB aggregation to get counts by day and action
-  const result = await Log.aggregate([
-    { 
-      $match: {
-        userId: new mongoose.Types.ObjectId(userId),
-        createdAt: { $gte: lastWeek }
-      }
-    },
-    {
-      $group: {
-        _id: {
-          date: { 
-            $dateToString: { 
-              format: '%Y-%m-%d', 
-              date: '$createdAt' 
-            } 
-          },
-          type: '$type',
-          action: '$action'
-        },
-        count: { $sum: 1 }
-      }
-    },
-    {
-      $sort: { '_id.date': 1 }
-    }
-  ]);
-
+  // Get logs from the last 7 days
+  const logsResponse = await databases.listDocuments(
+    DATABASE_ID,
+    LOGS_COLLECTION_ID,
+    [
+      Query.equal('userId', userId),
+      Query.greaterThanEqual('createdAt', lastWeek.toISOString()),
+      Query.limit(500) // Increase limit to ensure we get enough data
+    ]
+  );
+  
+  const logs = logsResponse.documents;
+  
   // Process the results to get a structured format
   const activityByDay = {};
   
@@ -122,9 +42,9 @@ const getLastWeekActivity = async (userId) => {
   }
   
   // Fill with actual data
-  result.forEach(item => {
-    const { date, type, action } = item._id;
-    const count = item.count;
+  logs.forEach(log => {
+    const date = new Date(log.createdAt).toISOString().split('T')[0];
+    const { type, action } = log;
     
     if (!activityByDay[date]) {
       activityByDay[date] = {
@@ -134,14 +54,14 @@ const getLastWeekActivity = async (userId) => {
     }
     
     // Increment total for the day
-    activityByDay[date].total += count;
+    activityByDay[date].total += 1;
     
     // Add or increment action count
     const actionKey = `${type}:${action}`;
     if (!activityByDay[date].actions[actionKey]) {
       activityByDay[date].actions[actionKey] = 0;
     }
-    activityByDay[date].actions[actionKey] += count;
+    activityByDay[date].actions[actionKey] += 1;
   });
   
   // Convert to array sorted by date
@@ -153,42 +73,179 @@ const getLastWeekActivity = async (userId) => {
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 };
 
-/**
- * @desc    Get activity distribution for the current user
- * @route   GET /api/stats/activity
- * @access  Private
- */
-exports.getActivityDistribution = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    
-    // Get activity distribution by type and action
-    const distribution = await Log.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
-      { 
-        $group: { 
-          _id: { type: '$type', action: '$action' },
-          count: { $sum: 1 }
-        } 
-      },
-      {
-        $group: {
-          _id: '$_id.type',
-          actions: { 
-            $push: { 
-              action: '$_id.action', 
-              count: '$count' 
-            } 
-          },
-          total: { $sum: '$count' }
+// Objeto con todas las funciones del controlador
+const statsController = {
+  /**
+   * Get statistics for the current user
+   * @route GET /api/stats
+   * @access Private
+   */
+  getStats: async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      // Execute multiple queries in parallel for better performance
+      const [sitesCount, logsData, lastWeekActivity] = await Promise.all([
+        // Count total sites for the user
+        databases.listDocuments(
+          DATABASE_ID,
+          SITES_COLLECTION_ID,
+          [Query.equal('userId', userId)]
+        ).then(response => response.total),
+        
+        // Get logs for the user to count and find last login
+        databases.listDocuments(
+          DATABASE_ID,
+          LOGS_COLLECTION_ID,
+          [
+            Query.equal('userId', userId),
+            Query.orderDesc('createdAt'),
+            Query.limit(100)
+          ]
+        ),
+        
+        // Get activity counts by day for the last 7 days
+        getLastWeekActivity(userId)
+      ]);
+
+      // Find the last login from logs
+      const lastLogin = logsData.documents.find(log => 
+        log.type === 'auth' && log.action === 'login'
+      );
+
+      // Format the statistics
+      const stats = {
+        sites: {
+          total: sitesCount
+        },
+        logs: {
+          total: logsData.total
+        },
+        user: {
+          lastLogin: lastLogin ? lastLogin.createdAt : null
+        },
+        activity: {
+          lastWeek: lastWeekActivity
         }
-      },
-      { $sort: { total: -1 } }
-    ]);
+      };
+
+      // Log this activity
+      LogService.createLog({
+        type: 'system',
+        action: 'view',
+        message: 'User viewed their statistics',
+        userId: req.user.id
+      });
+
+      sendSuccessResponse(res, 'Estadísticas obtenidas exitosamente', { stats });
+    } catch (error) {
+      console.error(error);
+      sendErrorResponse(res, 'Error obteniendo estadísticas', 500);
+    }
+  },
+
+  /**
+   * Get activity distribution for the current user
+   * @route GET /api/stats/activity
+   * @access Private
+   */
+  getActivityDistribution: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      
+      // Get all logs for the user
+      const logsResponse = await databases.listDocuments(
+        DATABASE_ID,
+        LOGS_COLLECTION_ID,
+        [
+          Query.equal('userId', userId),
+          Query.limit(500) // Increase limit to get enough data for analysis
+        ]
+      );
+      
+      const logs = logsResponse.documents;
+      
+      // Process logs to get activity distribution
+      const typeActionCount = {};
+      
+      logs.forEach(log => {
+        const { type, action } = log;
+        
+        if (!typeActionCount[type]) {
+          typeActionCount[type] = {
+            actions: {},
+            total: 0
+          };
+        }
+        
+        if (!typeActionCount[type].actions[action]) {
+          typeActionCount[type].actions[action] = 0;
+        }
+        
+        typeActionCount[type].actions[action] += 1;
+        typeActionCount[type].total += 1;
+      });
+      
+      // Convert to array format
+      const distribution = Object.entries(typeActionCount).map(([type, data]) => {
+        return {
+          _id: type,
+          actions: Object.entries(data.actions).map(([action, count]) => ({ action, count })),
+          total: data.total
+        };
+      }).sort((a, b) => b.total - a.total);
+      
+      sendSuccessResponse(res, 'Distribución de actividad obtenida exitosamente', { distribution });
+    } catch (error) {
+      console.error(error);
+      sendErrorResponse(res, 'Error obteniendo distribución de actividad', 500);
+    }
+  },
+
+  /**
+   * Get statistics for the authenticated user
+   * @route GET /api/stats/user
+   * @access Private - Authenticated users only
+   */
+  getUserStats: catchAsync(async (req, res) => {
+    // Get stats for the authenticated user (from req.user.id)
+    const stats = await statsService.getUserStats(req.user.id);
     
-    sendSuccessResponse(res, 'Distribución de actividad obtenida exitosamente', { distribution });
-  } catch (error) {
-    console.error(error);
-    sendErrorResponse(res, 'Error obteniendo distribución de actividad', 500);
-  }
-}; 
+    res.status(200).json({
+      status: 'success',
+      data: stats
+    });
+  }),
+
+  /**
+   * Get statistics for a specific user (admin only)
+   * @route GET /api/stats/user/:userId
+   * @access Private - Admin only
+   */
+  getUserStatsById: catchAsync(async (req, res) => {
+    const { userId } = req.params;
+    const stats = await statsService.getUserStats(userId);
+    
+    res.status(200).json({
+      status: 'success',
+      data: stats
+    });
+  }),
+
+  /**
+   * Get platform-wide statistics
+   * @route GET /api/stats/admin
+   * @access Private - Admin only
+   */
+  getAdminStats: catchAsync(async (req, res) => {
+    const stats = await statsService.getAdminStats();
+    
+    res.status(200).json({
+      status: 'success',
+      data: stats
+    });
+  })
+};
+
+// Exportamos el objeto del controlador
+module.exports = statsController; 
