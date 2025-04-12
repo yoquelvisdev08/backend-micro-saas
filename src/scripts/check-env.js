@@ -8,32 +8,30 @@ console.log('==================================================');
 console.log('VERIFICACIÓN DE ENTORNO DE BACKEND MICRO SAAS');
 console.log('==================================================');
 
-// Variables requeridas con valores por defecto para producción
+// Variables críticas para el funcionamiento
 const requiredVars = [
-  { name: 'PORT', defaultValue: '5000', critical: false },
-  { name: 'NODE_ENV', defaultValue: 'production', critical: false },
-  { name: 'APPWRITE_ENDPOINT', defaultValue: 'https://cloud.appwrite.io/v1', critical: false },
-  { name: 'APPWRITE_PROJECT_ID', defaultValue: null, critical: false },
-  { name: 'APPWRITE_API_KEY', defaultValue: null, critical: false },
-  { name: 'APPWRITE_DATABASE_ID', defaultValue: null, critical: false },
-  { name: 'JWT_SECRET', defaultValue: null, critical: true },
-  { name: 'JWT_EXPIRES_IN', defaultValue: '30d', critical: true },
-  { name: 'LOG_LEVEL', defaultValue: 'info', critical: false }
+  'PORT',
+  'NODE_ENV',
+  'APPWRITE_ENDPOINT',
+  'APPWRITE_PROJECT_ID',
+  'APPWRITE_API_KEY',
+  'APPWRITE_DATABASE_ID',
+  'JWT_SECRET',
+  'JWT_EXPIRES_IN'
 ];
 
-let missingCriticalVars = false;
+// Establecer valores por defecto para algunas variables
+if (!process.env.PORT) process.env.PORT = '5000';
+if (!process.env.NODE_ENV) process.env.NODE_ENV = 'production';
+if (!process.env.APPWRITE_ENDPOINT) process.env.APPWRITE_ENDPOINT = 'https://cloud.appwrite.io/v1';
+if (!process.env.JWT_EXPIRES_IN) process.env.JWT_EXPIRES_IN = '30d';
+if (!process.env.LOG_LEVEL) process.env.LOG_LEVEL = 'info';
 
-requiredVars.forEach(({ name, defaultValue, critical }) => {
+// Verificar y mostrar el estado de las variables
+requiredVars.forEach(name => {
   const value = process.env[name];
-  
-  if (!value && defaultValue) {
-    console.log(`⚠️  ${name}: Falta, usando valor por defecto`);
-    process.env[name] = defaultValue;
-  } else if (!value && critical) {
-    console.log(`❌ ${name}: FALTA - Variable CRÍTICA`);
-    missingCriticalVars = true;
-  } else if (!value) {
-    console.log(`⚠️  ${name}: Falta - Algunas funciones podrían no estar disponibles`);
+  if (!value) {
+    console.log(`⚠️  ${name}: No configurado`);
   } else {
     const displayValue = name.includes('SECRET') || name.includes('KEY') 
       ? '********' 
@@ -42,14 +40,4 @@ requiredVars.forEach(({ name, defaultValue, critical }) => {
   }
 });
 
-console.log('--------------------------------------------------');
-
-if (missingCriticalVars) {
-  console.error('❌ ERROR: Faltan variables de entorno críticas. La aplicación podría no funcionar correctamente.');
-  // No terminamos el proceso para permitir que la aplicación arranque en Railway
-  // En un entorno de desarrollo, podríamos usar: process.exit(1);
-} else {
-  console.log('✅ Todas las variables críticas están configuradas');
-}
-
-console.log('=================================================='); 
+console.log('==================================================');
