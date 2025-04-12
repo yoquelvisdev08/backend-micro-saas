@@ -1,8 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const connectDB = require('./src/config/db');
-const { connectRedis, isRedisConnected } = require('./src/config/redis');
+const { initializeDatabase } = require('./src/config/appwrite');
 const errorHandler = require('./src/middlewares/error.middleware');
 const { setupSwagger } = require('./src/config/swagger');
 
@@ -12,15 +11,11 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 
-// Connect to MongoDB
-connectDB().catch(err => {
-  console.error('Error conectando a MongoDB:', err);
-  process.exit(1);
-});
-
-// Connect to Redis (sin detener la aplicación si falla)
-connectRedis().catch(err => {
-  console.error('Error conectando a Redis (continuando sin funcionalidad de Redis):', err);
+// Connect to Appwrite
+initializeDatabase().catch(err => {
+  console.error('Error connecting to Appwrite:', err);
+  // Do not exit, continue even if Appwrite connection fails
+  console.log('Continuing without full Appwrite functionality');
 });
 
 // Middleware
@@ -33,13 +28,11 @@ setupSwagger(app);
 
 // Root route
 app.get('/', (req, res) => {
-  const redisStatus = isRedisConnected() ? 'conectado' : 'desconectado';
-  res.json({ 
-    message: 'Welcome to the Backend Micro SaaS API',
-    redisStatus,
-    docs: `${process.env.API_URL || 'http://localhost:5000'}/api/docs`
-  });
+  res.send('Welcome to the Backend Micro SaaS API');
 });
+
+// Console log info
+console.log('Swagger Docs disponible en /api/docs');
 
 // Routes
 app.use('/api/auth', require('./src/routes/auth.routes'));
@@ -49,12 +42,14 @@ app.use('/api/stats', require('./src/routes/stats.routes'));
 app.use('/api/users', require('./src/routes/user.routes'));
 app.use('/api/admin', require('./src/routes/admin.routes'));
 
+// Add a test route
+app.get('/api/test', (req, res) => {
+  res.send('API funcionando correctamente con Appwrite!');
+});
+
 // 404 handler - for non-existent routes
 app.use((req, res, next) => {
-  res.status(404).json({
-    success: false,
-    message: `Route not found: ${req.originalUrl}`
-  });
+  res.status(404).send(`Route not found: ${req.originalUrl}`);
 });
 
 // Global error handler middleware
