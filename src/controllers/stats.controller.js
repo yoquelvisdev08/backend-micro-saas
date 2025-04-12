@@ -3,6 +3,7 @@ const LogService = require('../services/log.service');
 const statsService = require('../services/stats.service');
 const { catchAsync } = require('../utils/errorHandler');
 const { sendSuccessResponse, sendErrorResponse } = require('../utils/response.utils');
+const logger = require('../utils/logger');
 
 /**
  * Get activity counts by day for the last 7 days using Appwrite
@@ -13,6 +14,8 @@ const getLastWeekActivity = async (userId) => {
   // Get date 7 days ago
   const lastWeek = new Date();
   lastWeek.setDate(lastWeek.getDate() - 7);
+  
+  logger.debug(`Getting activity since ${lastWeek.toISOString()} for user ${userId}`);
   
   // Get logs from the last 7 days
   const logsResponse = await databases.listDocuments(
@@ -26,6 +29,7 @@ const getLastWeekActivity = async (userId) => {
   );
   
   const logs = logsResponse.documents;
+  logger.debug(`Found ${logs.length} activity logs for user ${userId}`);
   
   // Process the results to get a structured format
   const activityByDay = {};
@@ -83,6 +87,7 @@ const statsController = {
   getStats: async (req, res) => {
     try {
       const userId = req.user.id;
+      logger.debug(`Getting statistics for user ${userId}`);
 
       // Execute multiple queries in parallel for better performance
       const [sitesCount, logsData, lastWeekActivity] = await Promise.all([
@@ -134,12 +139,15 @@ const statsController = {
         type: 'system',
         action: 'view',
         message: 'User viewed their statistics',
-        userId: req.user.id
+        userId: req.user.id,
+        createdAt: new Date().toISOString()
+      }).catch(err => {
+        logger.error('Error logging statistics view:', err);
       });
 
       sendSuccessResponse(res, 'Estadísticas obtenidas exitosamente', { stats });
     } catch (error) {
-      console.error(error);
+      logger.error('Error obteniendo estadísticas:', error);
       sendErrorResponse(res, 'Error obteniendo estadísticas', 500);
     }
   },
@@ -152,6 +160,7 @@ const statsController = {
   getActivityDistribution: async (req, res) => {
     try {
       const userId = req.user.id;
+      logger.debug(`Getting activity distribution for user ${userId}`);
       
       // Get all logs for the user
       const logsResponse = await databases.listDocuments(
@@ -164,6 +173,7 @@ const statsController = {
       );
       
       const logs = logsResponse.documents;
+      logger.debug(`Found ${logs.length} logs for activity distribution`);
       
       // Process logs to get activity distribution
       const typeActionCount = {};
@@ -195,9 +205,20 @@ const statsController = {
         };
       }).sort((a, b) => b.total - a.total);
       
+      // Log this activity
+      LogService.createLog({
+        type: 'system',
+        action: 'view',
+        message: 'User viewed activity distribution',
+        userId: req.user.id,
+        createdAt: new Date().toISOString()
+      }).catch(err => {
+        logger.error('Error logging activity distribution view:', err);
+      });
+      
       sendSuccessResponse(res, 'Distribución de actividad obtenida exitosamente', { distribution });
     } catch (error) {
-      console.error(error);
+      logger.error('Error obteniendo distribución de actividad:', error);
       sendErrorResponse(res, 'Error obteniendo distribución de actividad', 500);
     }
   },
@@ -210,6 +231,17 @@ const statsController = {
   getUserStats: catchAsync(async (req, res) => {
     // Get stats for the authenticated user (from req.user.id)
     const stats = await statsService.getUserStats(req.user.id);
+    
+    // Log this activity
+    LogService.createLog({
+      type: 'user',
+      action: 'view',
+      message: 'User viewed personal statistics',
+      userId: req.user.id,
+      createdAt: new Date().toISOString()
+    }).catch(err => {
+      logger.error('Error logging user stats view:', err);
+    });
     
     res.status(200).json({
       status: 'success',
@@ -226,6 +258,17 @@ const statsController = {
     const { userId } = req.params;
     const stats = await statsService.getUserStats(userId);
     
+    // Log this admin activity
+    LogService.createLog({
+      type: 'admin',
+      action: 'view',
+      message: `Admin viewed user statistics for user ${userId}`,
+      userId: req.user.id,
+      createdAt: new Date().toISOString()
+    }).catch(err => {
+      logger.error('Error logging admin user stats view:', err);
+    });
+    
     res.status(200).json({
       status: 'success',
       data: stats
@@ -239,6 +282,17 @@ const statsController = {
    */
   getAdminStats: catchAsync(async (req, res) => {
     const stats = await statsService.getAdminStats();
+    
+    // Log this admin activity
+    LogService.createLog({
+      type: 'admin',
+      action: 'view',
+      message: 'Admin viewed platform statistics',
+      userId: req.user.id,
+      createdAt: new Date().toISOString()
+    }).catch(err => {
+      logger.error('Error logging admin stats view:', err);
+    });
     
     res.status(200).json({
       status: 'success',

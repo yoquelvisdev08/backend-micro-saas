@@ -32,14 +32,16 @@ class LogService {
         processedMetadata = String(metadata);
       }
       
-      // Prepare log document with minimal fields - no createdAt
+      // Prepare log document with all required fields
       const logDocument = {
         type,
         action,
         message: message || `${type}:${action}`,
         userId,
         // Ensure metadata is properly formatted
-        metadata: processedMetadata
+        metadata: processedMetadata,
+        // Include createdAt as required by Appwrite
+        createdAt: new Date().toISOString()
       };
       
       // Only add IP if provided
@@ -48,6 +50,7 @@ class LogService {
       }
       
       logger.debug(`Creating log entry: ${type}:${action} for user ${userId}`);
+      logger.debug(`Log document: ${JSON.stringify({ ...logDocument, metadata: 'REDACTED' })}`);
       
       const log = await databases.createDocument(
         DATABASE_ID,
@@ -94,8 +97,8 @@ class LogService {
         queries.push(Query.equal('action', options.action));
       }
       
-      // Sort by $createdAt descending (special Appwrite field)
-      queries.push(Query.orderDesc('$createdAt'));
+      // Sort by createdAt descending
+      queries.push(Query.orderDesc('createdAt'));
       
       logger.debug(`Fetching logs for user: ${userId}`);
       
@@ -149,8 +152,8 @@ class LogService {
         queries.push(Query.equal('action', options.action));
       }
       
-      // Sort by $createdAt descending (special Appwrite field)
-      queries.push(Query.orderDesc('$createdAt'));
+      // Sort by createdAt descending
+      queries.push(Query.orderDesc('createdAt'));
       
       logger.debug('Fetching all logs');
       
@@ -233,7 +236,7 @@ class LogService {
         userId: log.userId,
         metadata: parsedMetadata,
         ip: log.ip,
-        createdAt: log.$createdAt // Use Appwrite's internal $createdAt field
+        createdAt: log.createdAt || log.$createdAt // Use the explicit createdAt field or fallback to Appwrite's internal $createdAt field
       };
     } catch (error) {
       logger.error(`Error formatting log: ${error.message}`);
@@ -245,7 +248,7 @@ class LogService {
         message: log.message,
         userId: log.userId,
         metadata: {},
-        createdAt: log.$createdAt // Use Appwrite's internal $createdAt field
+        createdAt: log.createdAt || log.$createdAt // Use the explicit createdAt field or fallback to Appwrite's internal $createdAt field
       };
     }
   }
