@@ -5,6 +5,28 @@
 
 Un backend completo para una aplicación Micro SaaS, con autenticación, monitoreo de sitios, analíticas y sistema de roles, utilizando Appwrite como backend as a service.
 
+## Solución de problemas en Railway
+
+Si estás experimentando problemas con el despliegue en Railway, especialmente con los healthchecks, asegúrate de:
+
+1. **Variables de entorno**: Configura todas las variables de entorno requeridas en Railway:
+   - `PORT`: 5000 (o el puerto deseado)
+   - `NODE_ENV`: production
+   - `APPWRITE_ENDPOINT`: URL de tu instancia de Appwrite
+   - `APPWRITE_PROJECT_ID`: ID de tu proyecto de Appwrite
+   - `APPWRITE_API_KEY`: Clave API de Appwrite
+   - `APPWRITE_DATABASE_ID`: ID de la base de datos en Appwrite
+   - `JWT_SECRET`: Clave secreta para firmar tokens JWT
+   - `JWT_EXPIRES_IN`: Tiempo de expiración de los tokens
+
+2. **Healthcheck**: Railway realiza un healthcheck en la ruta `/health`. Asegúrate de que esta ruta esté accesible.
+
+3. **Conexión a Appwrite**: Si tienes problemas con Appwrite, la aplicación seguirá funcionando pero con funcionalidad limitada.
+
+4. **Logs**: Revisa los logs en Railway para obtener más información sobre posibles errores.
+
+Para más detalles sobre el despliegue en Railway, consulta el archivo `RAILWAY_DEPLOYMENT.md`.
+
 ## Características
 
 - 🔐 **Autenticación** con JWT y Appwrite

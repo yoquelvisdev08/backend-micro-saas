@@ -14,9 +14,12 @@ console.log('=============================================');
 
 // Initialize Appwrite client
 const client = new Client()
-  .setEndpoint('https://cloud.appwrite.io/v1')
-  .setProject(process.env.APPWRITE_PROJECT_ID)
-  .setKey(process.env.APPWRITE_API_KEY);
+  .setEndpoint(process.env.APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1')
+  .setProject(process.env.APPWRITE_PROJECT_ID || '')
+  .setKey(process.env.APPWRITE_API_KEY || '');
+
+// Flag to track Appwrite connection status
+let APPWRITE_CONNECTED = false;
 
 // Initialize Appwrite services
 const account = new Account(client);
@@ -62,18 +65,18 @@ const initializeDatabase = async () => {
     console.log('Initializing Appwrite database...');
     
     if (!DATABASE_ID) {
-      console.error('ERROR: APPWRITE_DATABASE_ID no está configurado en el archivo .env');
-      throw new Error('APPWRITE_DATABASE_ID no está configurado');
+      console.warn('AVISO: APPWRITE_DATABASE_ID no está configurado en el archivo .env. Saltando inicialización de Appwrite.');
+      return false;
     }
     
     if (!process.env.APPWRITE_PROJECT_ID) {
-      console.error('ERROR: APPWRITE_PROJECT_ID no está configurado en el archivo .env');
-      throw new Error('APPWRITE_PROJECT_ID no está configurado');
+      console.warn('AVISO: APPWRITE_PROJECT_ID no está configurado en el archivo .env. Saltando inicialización de Appwrite.');
+      return false;
     }
     
     if (!process.env.APPWRITE_API_KEY) {
-      console.error('ERROR: APPWRITE_API_KEY no está configurado en el archivo .env');
-      throw new Error('APPWRITE_API_KEY no está configurado');
+      console.warn('AVISO: APPWRITE_API_KEY no está configurado en el archivo .env. Saltando inicialización de Appwrite.');
+      return false;
     }
     
     // Check if we can connect to the database
@@ -107,7 +110,7 @@ const initializeDatabase = async () => {
       }
       
       console.log('Database initialization complete. Using existing attribute structure.');
-      
+      APPWRITE_CONNECTED = true;
       return true;
     } catch (error) {
       console.error('Error conectando a la base de datos Appwrite:', error);
@@ -127,13 +130,16 @@ const initializeDatabase = async () => {
         console.error('Error al intentar listar bases de datos:', listError);
       }
       
-      throw error;
+      return false;
     }
   } catch (error) {
     console.error('Error inicializando Appwrite:', error);
     return false;
   }
 };
+
+// Add a function to check Appwrite connection status
+const isAppwriteConnected = () => APPWRITE_CONNECTED;
 
 module.exports = {
   client,
@@ -144,6 +150,7 @@ module.exports = {
   SITES_COLLECTION_ID,
   LOGS_COLLECTION_ID,
   initializeDatabase,
+  isAppwriteConnected,
   Query,
   ID,
   Permission,

@@ -181,7 +181,7 @@ class LogService {
       return null;
     }
   }
-  
+
   /**
    * Calculate severity based on log type, action and status
    * @param {string} type - Log type 
@@ -308,7 +308,7 @@ class LogService {
         hasNextPage: page < totalPages,
         hasPrevPage: page > 1
       };
-      
+
       return {
         logs: logs.documents.map(this.formatLog),
         pagination,
@@ -409,7 +409,7 @@ class LogService {
       return this.getEmptySummary();
     }
   }
-  
+
   /**
    * Get empty summary structure
    * @returns {Object} - Empty summary

@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const { initializeDatabase } = require('./src/config/appwrite');
+const { initializeDatabase, isAppwriteConnected } = require('./src/config/appwrite');
 const errorHandler = require('./src/middlewares/error.middleware');
 const { setupSwagger } = require('./src/config/swagger');
 
@@ -12,11 +12,19 @@ dotenv.config();
 const app = express();
 
 // Connect to Appwrite
-initializeDatabase().catch(err => {
-  console.error('Error connecting to Appwrite:', err);
-  // Do not exit, continue even if Appwrite connection fails
-  console.log('Continuing without full Appwrite functionality');
-});
+console.log('Intentando conectar a Appwrite...');
+initializeDatabase()
+  .then(connected => {
+    if (connected) {
+      console.log('✅ Appwrite conectado exitosamente');
+    } else {
+      console.warn('⚠️ No se pudo conectar a Appwrite - La aplicación funcionará con capacidades limitadas');
+    }
+  })
+  .catch(err => {
+    console.error('❌ Error al intentar conectar con Appwrite:', err.message);
+    console.log('Continuando sin funcionalidades de Appwrite');
+  });
 
 // Middleware
 app.use(cors());
@@ -28,7 +36,25 @@ setupSwagger(app);
 
 // Root route
 app.get('/', (req, res) => {
-  res.send('Welcome to the Backend Micro SaaS API - Powered by Appwrite');
+  // Enviar una respuesta más completa que pueda ayudar con los healthchecks
+  res.status(200).json({
+    status: 'ok',
+    message: 'Backend Micro SaaS API is running',
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Añadir una ruta específica para healthcheck
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    appwrite: {
+      connected: isAppwriteConnected()
+    }
+  });
 });
 
 // Routes
