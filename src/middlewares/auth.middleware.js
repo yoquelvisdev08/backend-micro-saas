@@ -23,8 +23,11 @@ exports.protect = async (req, res, next) => {
   }
 
   try {
+    // Use the same JWT secret as in auth.service.js
+    const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here';
+    
     // Verify JWT token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
     logger.info(`Token verified for user ID: ${decoded.id}`);
     
     // Get user from Appwrite database

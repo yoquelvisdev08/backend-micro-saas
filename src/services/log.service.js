@@ -20,15 +20,14 @@ class LogService {
         return null;
       }
       
-      // Prepare log document with minimal fields
+      // Prepare log document with minimal fields - no createdAt
       const logDocument = {
         type,
         action,
         message: message || `${type}:${action}`,
         userId,
         // Ensure metadata is a string
-        metadata: typeof metadata === 'object' ? JSON.stringify(metadata) : String(metadata),
-        createdAt: new Date().toISOString()
+        metadata: typeof metadata === 'object' ? JSON.stringify(metadata) : String(metadata)
       };
       
       // Only add IP if provided
@@ -83,8 +82,8 @@ class LogService {
         queries.push(Query.equal('action', options.action));
       }
       
-      // Sort by createdAt descending
-      queries.push(Query.orderDesc('createdAt'));
+      // Sort by $createdAt descending (special Appwrite field)
+      queries.push(Query.orderDesc('$createdAt'));
       
       logger.debug(`Fetching logs for user: ${userId}`);
       
@@ -138,8 +137,8 @@ class LogService {
         queries.push(Query.equal('action', options.action));
       }
       
-      // Sort by createdAt descending
-      queries.push(Query.orderDesc('createdAt'));
+      // Sort by $createdAt descending (special Appwrite field)
+      queries.push(Query.orderDesc('$createdAt'));
       
       logger.debug('Fetching all logs');
       
@@ -206,7 +205,7 @@ class LogService {
         userId: log.userId,
         metadata: log.metadata ? JSON.parse(log.metadata) : {},
         ip: log.ip,
-        createdAt: log.createdAt
+        createdAt: log.$createdAt // Use Appwrite's internal $createdAt field
       };
     } catch (error) {
       logger.error(`Error formatting log: ${error.message}`);
@@ -218,7 +217,7 @@ class LogService {
         message: log.message,
         userId: log.userId,
         metadata: {},
-        createdAt: log.createdAt
+        createdAt: log.$createdAt // Use Appwrite's internal $createdAt field
       };
     }
   }

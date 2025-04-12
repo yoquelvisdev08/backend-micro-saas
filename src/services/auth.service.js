@@ -22,15 +22,12 @@ class AuthService {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
       
-      // Check the existing collection structure before creating a document
-      logger.info(`Checking collection structure for ${USERS_COLLECTION_ID}`);
-      
-      // Create minimal user data - use only what we know Appwrite accepts
+      // Create minimal user data - only include fields that exist in the collection
       const userData = {
         name,
         email,
-        password: hashedPassword,
-        createdAt: new Date().toISOString()
+        password: hashedPassword
+        // Removed createdAt field as it doesn't exist in the collection
       };
       
       logger.info(`Creating user with minimal data structure. Fields: ${Object.keys(userData).join(', ')}`);
@@ -49,10 +46,11 @@ class AuthService {
       
       logger.info(`User created successfully with ID: ${user.$id}`);
       
-      // Generate JWT token directly instead of calling createSession
+      // Generate JWT token with secret
+      const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here';
       const token = jwt.sign(
         { id: user.$id, email: user.email },
-        process.env.JWT_SECRET,
+        JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN || '30d' }
       );
       
@@ -111,10 +109,11 @@ class AuthService {
         throw new Error('Invalid credentials');
       }
       
-      // Generate JWT token
+      // Generate JWT token with secret
+      const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here';
       const token = jwt.sign(
         { id: user.$id, email: user.email },
-        process.env.JWT_SECRET,
+        JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN || '30d' }
       );
       

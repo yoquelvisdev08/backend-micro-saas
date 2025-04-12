@@ -9,6 +9,7 @@ console.log('=========== Appwrite Configuration ===========');
 console.log(`APPWRITE_PROJECT_ID: ${process.env.APPWRITE_PROJECT_ID}`);
 console.log(`APPWRITE_DATABASE_ID: ${process.env.APPWRITE_DATABASE_ID}`);
 console.log(`APPWRITE_API_KEY: ${process.env.APPWRITE_API_KEY ? (process.env.APPWRITE_API_KEY.substring(0, 10) + '...') : 'FALTA'}`);
+console.log(`JWT_SECRET: ${process.env.JWT_SECRET ? 'Configurado' : 'No configurado - usando valor por defecto'}`);
 console.log('=============================================');
 
 // Initialize Appwrite client
@@ -30,85 +31,26 @@ const SITES_COLLECTION_ID = 'sites';
 const LOGS_COLLECTION_ID = 'logs';
 
 /**
- * Verifies if a collection has all required attributes
- * @param {string} collectionId - Collection ID to check
- * @param {Array} requiredAttributes - Array of attribute objects
+ * Get attribute type based on existing attributes
+ * @param {Array} existingAttributes - List of existing attributes in the collection
+ * @param {Object} collection - Collection information
  */
-async function verifyCollectionAttributes(collectionId, requiredAttributes) {
+async function listCollectionAttributes(collectionId) {
   try {
-    console.log(`Verifying attributes for collection: ${collectionId}`);
+    console.log(`Listing attributes for collection: ${collectionId}`);
     
     // Get the collection attributes
     const attributes = await databases.listAttributes(DATABASE_ID, collectionId);
-    console.log(`Found ${attributes.total} attributes in collection ${collectionId}`);
+    console.log(`Found ${attributes.total} attributes in collection ${collectionId}:`);
     
-    // Get the names of existing attributes
-    const existingAttributes = attributes.attributes.map(attr => attr.key);
-    console.log(`Existing attributes: ${existingAttributes.join(', ')}`);
+    attributes.attributes.forEach(attr => {
+      console.log(`- ${attr.key} (${attr.type}): ${attr.required ? 'Required' : 'Optional'}`);
+    });
     
-    // Check for missing attributes
-    for (const attr of requiredAttributes) {
-      if (!existingAttributes.includes(attr.key)) {
-        console.log(`Missing attribute: ${attr.key} in collection ${collectionId}, creating it now...`);
-        
-        // Create the missing attribute based on its type
-        switch (attr.type) {
-          case 'string':
-            await databases.createStringAttribute(
-              DATABASE_ID,
-              collectionId,
-              attr.key,
-              attr.size || 255,
-              attr.required || false,
-              attr.default || null,
-              attr.array || false
-            );
-            break;
-          case 'boolean':
-            await databases.createBooleanAttribute(
-              DATABASE_ID,
-              collectionId,
-              attr.key,
-              attr.required || false,
-              attr.default || null,
-              attr.array || false
-            );
-            break;
-          case 'integer':
-            await databases.createIntegerAttribute(
-              DATABASE_ID,
-              collectionId,
-              attr.key,
-              attr.required || false,
-              attr.min || null,
-              attr.max || null,
-              attr.default || null,
-              attr.array || false
-            );
-            break;
-          case 'datetime':
-            await databases.createDatetimeAttribute(
-              DATABASE_ID,
-              collectionId,
-              attr.key,
-              attr.required || false,
-              attr.default || null,
-              attr.array || false
-            );
-            break;
-          default:
-            console.log(`Unknown attribute type: ${attr.type}`);
-        }
-        
-        console.log(`Created attribute: ${attr.key} in collection ${collectionId}`);
-      }
-    }
-    
-    console.log(`All required attributes verified for collection: ${collectionId}`);
-    return true;
+    return attributes.attributes;
   } catch (error) {
-    console.error(`Error verifying attributes for collection ${collectionId}:`, error);
-    return false;
+    console.error(`Error listing attributes for collection ${collectionId}:`, error);
+    return [];
   }
 }
 
@@ -145,52 +87,26 @@ const initializeDatabase = async () => {
       const collectionIds = collections.collections.map(c => c.$id);
       console.log(`Existing collections: ${collectionIds.join(', ')}`);
 
-      // Verify users collection has all required attributes
-      const userAttributes = [
-        { key: 'name', type: 'string', size: 255, required: true },
-        { key: 'email', type: 'string', size: 255, required: true },
-        { key: 'password', type: 'string', size: 1024, required: true },
-        { key: 'createdAt', type: 'datetime', required: true }
-      ];
-      
-      // Verify logs collection has all required attributes
-      const logAttributes = [
-        { key: 'type', type: 'string', size: 255, required: true },
-        { key: 'action', type: 'string', size: 255, required: true },
-        { key: 'message', type: 'string', size: 1024, required: false },
-        { key: 'userId', type: 'string', size: 255, required: true },
-        { key: 'metadata', type: 'string', size: 2048, required: false },
-        { key: 'ip', type: 'string', size: 255, required: false },
-        { key: 'createdAt', type: 'datetime', required: true }
-      ];
-      
-      // Verify sites collection has all required attributes
-      const siteAttributes = [
-        { key: 'name', type: 'string', size: 255, required: true },
-        { key: 'url', type: 'string', size: 1024, required: true },
-        { key: 'userId', type: 'string', size: 255, required: true },
-        { key: 'status', type: 'string', size: 255, required: true },
-        { key: 'createdAt', type: 'datetime', required: true }
-      ];
-      
-      // Verify collections exist and have all required attributes
+      // Print all attributes for each collection
       if (collectionIds.includes(USERS_COLLECTION_ID)) {
-        await verifyCollectionAttributes(USERS_COLLECTION_ID, userAttributes);
+        await listCollectionAttributes(USERS_COLLECTION_ID);
       } else {
         console.log(`Collection ${USERS_COLLECTION_ID} does not exist. Please create it manually.`);
       }
       
       if (collectionIds.includes(LOGS_COLLECTION_ID)) {
-        await verifyCollectionAttributes(LOGS_COLLECTION_ID, logAttributes);
+        await listCollectionAttributes(LOGS_COLLECTION_ID);
       } else {
         console.log(`Collection ${LOGS_COLLECTION_ID} does not exist. Please create it manually.`);
       }
       
       if (collectionIds.includes(SITES_COLLECTION_ID)) {
-        await verifyCollectionAttributes(SITES_COLLECTION_ID, siteAttributes);
+        await listCollectionAttributes(SITES_COLLECTION_ID);
       } else {
         console.log(`Collection ${SITES_COLLECTION_ID} does not exist. Please create it manually.`);
       }
+      
+      console.log('Database initialization complete. Using existing attribute structure.');
       
       return true;
     } catch (error) {
