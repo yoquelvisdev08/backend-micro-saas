@@ -14,23 +14,7 @@ class LogService {
    */
   async createLog(logData) {
     try {
-      const { 
-        type, 
-        action, 
-        message, 
-        userId, 
-        siteId = null,
-        status = 'success',
-        severity = this.calculateSeverity(type, action, status),
-        details = {},
-        metadata = {}, 
-        tags = [],
-        relatedLogs = [],
-        duration = 0,
-        ip = null,
-        userAgent = null,
-        requestId = null
-      } = logData;
+      const { type, action, message, userId, metadata = {}, ip = null } = logData;
       
       // Validate required fields
       if (!type || !action || !userId) {
@@ -38,126 +22,33 @@ class LogService {
         return null;
       }
       
-      // Get site name if siteId is provided
-      let siteName = null;
-      if (siteId) {
-        try {
-          const site = await siteService.getSiteById(siteId);
-          if (site) {
-            siteName = site.name;
-          }
-        } catch (err) {
-          logger.warn(`Could not fetch site name for site ID ${siteId}: ${err.message}`);
-        }
-      }
-      
-      // Enrich details with additional information
-      const enrichedDetails = { 
-        ...details,
-        server: {
-          hostname: os.hostname(),
-          platform: os.platform(),
-          nodeVersion: process.version,
-          memory: this.getMemoryUsage(),
-          timestamp: new Date().toISOString()
-        }
-      };
-
-      // If there's performance data, add it to details
-      if (duration > 0) {
-        enrichedDetails.performance = {
-          duration,
-          threshold: this.getPerformanceThreshold(type, action),
-          slow: duration > this.getPerformanceThreshold(type, action)
-        };
-      }
-
-      // If there's an error, add more context
-      if (status === 'error' && details.error) {
-        enrichedDetails.errorContext = {
-          name: details.error.name || 'Unknown',
-          code: details.error.code || 'UNKNOWN',
-          stack: details.error.stack ? this.sanitizeStackTrace(details.error.stack) : null
-        };
-      }
-      
-      // Process metadata to handle arrays correctly and enrich with context data
-      let enrichedMetadata = { ...metadata };
-      
-      // Add user agent information
-      if (userAgent) {
-        const deviceInfo = this.parseUserAgent(userAgent);
-        enrichedMetadata.device = deviceInfo;
-      }
-      
-      // Add IP-based geolocation if available
-      if (ip && !enrichedMetadata.location) {
-        try {
-          const geoData = await this.getGeolocationData(ip);
-          if (geoData) {
-            enrichedMetadata.location = geoData;
-          }
-        } catch (geoError) {
-          logger.warn(`Could not get geolocation data: ${geoError.message}`);
-        }
-      }
-
-      // Add request context if available
-      if (requestId) {
-        enrichedMetadata.request = {
-          id: requestId,
-          timestamp: new Date().toISOString()
-        };
-      }
-      
-      // If metadata contains email as array, process it
-      if (enrichedMetadata.email && Array.isArray(enrichedMetadata.email)) {
-        enrichedMetadata.email = enrichedMetadata.email[0];
-      }
-
-      // Process tags to include automatic categorization
-      let enhancedTags = Array.isArray(tags) ? [...tags] : [];
-      
-      // Add automatic tags based on log attributes
-      if (status === 'error') enhancedTags.push('error');
-      if (severity === 'high' || severity === 'critical') enhancedTags.push('important');
-      if (duration > this.getPerformanceThreshold(type, action)) enhancedTags.push('slow');
-      if (type) enhancedTags.push(`type:${type}`);
-      if (action) enhancedTags.push(`action:${action}`);
-      
-      // Remove duplicates
-      enhancedTags = [...new Set(enhancedTags)];
-      
-      // Stringify for storage
-      const processedMetadata = JSON.stringify(enrichedMetadata);
-      const processedDetails = JSON.stringify(enrichedDetails);
-      const processedTags = JSON.stringify(enhancedTags);
-      
-      // Prepare log document with all required fields
+      // Solo incluir campos básicos que sabemos existen en Appwrite
+      // Cualquier campo adicional será ignorado para evitar errores de estructura
       const logDocument = {
         type,
         action,
         message: message || `${type}:${action}`,
-        userId,
-        siteId,
-        siteName,
-        status,
-        severity,
-        details: processedDetails,
-        metadata: processedMetadata,
-        tags: processedTags,
-        relatedLogs: Array.isArray(relatedLogs) ? JSON.stringify(relatedLogs) : JSON.stringify([]),
-        duration: duration || 0,
-        createdAt: new Date().toISOString()
+        userId
       };
       
-      // Only add IP if provided
+      // Manejar metadata de forma segura (solo si existe el campo en Appwrite)
+      if (metadata && Object.keys(metadata).length > 0) {
+        try {
+          logDocument.metadata = typeof metadata === 'object' ? 
+            JSON.stringify(metadata) : String(metadata);
+        } catch (error) {
+          logger.warn(`Error al procesar metadata, ignorando: ${error.message}`);
+          // No incluir metadata si hay error
+        }
+      }
+      
+      // Solo añadir IP si se proporciona y existe en Appwrite
       if (ip) {
         logDocument.ip = ip;
       }
       
       logger.debug(`Creating log entry: ${type}:${action} for user ${userId}`);
-      logger.debug(`Log document: ${JSON.stringify({ ...logDocument, metadata: 'REDACTED' })}`);
+      logger.debug(`Log document: ${JSON.stringify(logDocument)}`);
       
       const log = await databases.createDocument(
         DATABASE_ID,
@@ -179,6 +70,180 @@ class LogService {
       
       // Don't throw to prevent breaking app flow
       return null;
+    }
+  }
+  
+  /**
+   * Get logs for a user
+   * @param {string} userId - User ID
+   * @param {Object} options - Query options
+   * @returns {Array} - List of logs
+   */
+  async getUserLogs(userId, options = {}) {
+    try {
+      const { limit = 100, page = 1 } = options;
+      
+      const queries = [Query.equal('userId', userId)];
+      
+      // Add type filter if provided
+      if (options.type) {
+        queries.push(Query.equal('type', options.type));
+      }
+      
+      // Add action filter if provided
+      if (options.action) {
+        queries.push(Query.equal('action', options.action));
+      }
+      
+      // Sort by $createdAt descending (special Appwrite field)
+      queries.push(Query.orderDesc('$createdAt'));
+      
+      logger.debug(`Fetching logs for user: ${userId}`);
+      
+      const logs = await databases.listDocuments(
+        DATABASE_ID,
+        LOGS_COLLECTION_ID,
+        queries,
+        limit,
+        (page - 1) * limit
+      );
+      
+      logger.debug(`Found ${logs.total} logs for user ${userId}`);
+      
+      return {
+        total: logs.total,
+        logs: logs.documents.map(this.formatLog)
+      };
+    } catch (error) {
+      logger.error(`Error getting user logs: ${error.message}`);
+      // Return empty results instead of throwing
+      return {
+        total: 0,
+        logs: []
+      };
+    }
+  }
+  
+  /**
+   * Get all logs (admin only)
+   * @param {Object} options - Query options
+   * @returns {Array} - List of logs
+   */
+  async getAllLogs(options = {}) {
+    try {
+      const { limit = 100, page = 1 } = options;
+      
+      const queries = [];
+      
+      // Add userId filter if provided
+      if (options.userId) {
+        queries.push(Query.equal('userId', options.userId));
+      }
+      
+      // Add type filter if provided
+      if (options.type) {
+        queries.push(Query.equal('type', options.type));
+      }
+      
+      // Add action filter if provided
+      if (options.action) {
+        queries.push(Query.equal('action', options.action));
+      }
+      
+      // Sort by $createdAt descending (special Appwrite field)
+      queries.push(Query.orderDesc('$createdAt'));
+      
+      logger.debug('Fetching all logs');
+      
+      const logs = await databases.listDocuments(
+        DATABASE_ID,
+        LOGS_COLLECTION_ID,
+        queries,
+        limit,
+        (page - 1) * limit
+      );
+      
+      logger.debug(`Found ${logs.total} logs total`);
+      
+      return {
+        total: logs.total,
+        logs: logs.documents.map(this.formatLog)
+      };
+    } catch (error) {
+      logger.error(`Error getting all logs: ${error.message}`);
+      // Return empty results instead of throwing
+      return {
+        total: 0,
+        logs: []
+      };
+    }
+  }
+  
+  /**
+   * Count logs for a user
+   * @param {string} userId - User ID
+   * @returns {number} - Count of logs
+   */
+  async countUserLogs(userId) {
+    try {
+      logger.debug(`Counting logs for user: ${userId}`);
+      
+      const logs = await databases.listDocuments(
+        DATABASE_ID,
+        LOGS_COLLECTION_ID,
+        [Query.equal('userId', userId)]
+      );
+      
+      logger.debug(`Found ${logs.total} logs for user ${userId}`);
+      
+      return logs.total;
+    } catch (error) {
+      logger.error(`Error counting user logs: ${error.message}`);
+      return 0;
+    }
+  }
+  
+  /**
+   * Format log data from Appwrite format
+   * @param {Object} log - Log from Appwrite
+   * @returns {Object} - Formatted log
+   */
+  formatLog(log) {
+    try {
+      // Crear un objeto base con campos que sabemos que existen
+      const formattedLog = {
+        id: log.$id,
+        createdAt: log.$createdAt // Usar el campo interno de Appwrite
+      };
+      
+      // Añadir solo los campos que existen en el documento
+      if (log.type) formattedLog.type = log.type;
+      if (log.action) formattedLog.action = log.action;
+      if (log.message) formattedLog.message = log.message;
+      if (log.userId) formattedLog.userId = log.userId;
+      
+      // Procesar metadata solo si existe
+      if (log.metadata) {
+        try {
+          formattedLog.metadata = JSON.parse(log.metadata);
+        } catch (error) {
+          formattedLog.metadata = {}; // Si hay error al parsear, usar objeto vacío
+        }
+      } else {
+        formattedLog.metadata = {};
+      }
+      
+      // Añadir IP solo si existe
+      if (log.ip) formattedLog.ip = log.ip;
+      
+      return formattedLog;
+    } catch (error) {
+      logger.error(`Error formatting log: ${error.message}`);
+      // Return basic log if parsing fails
+      return {
+        id: log.$id,
+        createdAt: log.$createdAt
+      };
     }
   }
 
@@ -224,7 +289,7 @@ class LogService {
    * @param {Object} options - Query options
    * @returns {Object} - Logs and pagination data
    */
-  async getUserLogs(userId, options = {}) {
+  async getUserLogsAdvanced(userId, options = {}) {
     try {
       const {
         page = 1,
@@ -432,149 +497,6 @@ class LogService {
   }
   
   /**
-   * Get all logs (admin only) with advanced filtering
-   * @param {Object} options - Query options
-   * @returns {Object} - Logs, pagination and summary
-   */
-  async getAllLogs(options = {}) {
-    try {
-      const {
-        page = 1,
-        limit = 10,
-        userId,
-        startDate,
-        endDate,
-        siteId,
-        action,
-        status,
-        search,
-        sortBy = 'createdAt',
-        sortOrder = 'desc',
-        type
-      } = options;
-      
-      const queries = [];
-      
-      // Add userId filter if provided
-      if (userId) {
-        queries.push(Query.equal('userId', userId));
-      }
-      
-      // Add date range filters
-      if (startDate) {
-        queries.push(Query.greaterThanEqual('createdAt', new Date(startDate).toISOString()));
-      }
-      
-      if (endDate) {
-        queries.push(Query.lessThanEqual('createdAt', new Date(endDate).toISOString()));
-      }
-      
-      // Add type filter if provided
-      if (type) {
-        queries.push(Query.equal('type', type));
-      }
-      
-      // Add action filter if provided
-      if (action) {
-        queries.push(Query.equal('action', action));
-      }
-      
-      // Add siteId filter if provided
-      if (siteId) {
-        queries.push(Query.equal('siteId', siteId));
-      }
-      
-      // Add status filter if provided
-      if (status) {
-        queries.push(Query.equal('status', status));
-      }
-      
-      // Add search in message
-      if (search) {
-        queries.push(Query.search('message', search));
-      }
-      
-      // Add sort options
-      if (sortOrder.toLowerCase() === 'asc') {
-        queries.push(Query.orderAsc(sortBy));
-      } else {
-        queries.push(Query.orderDesc(sortBy));
-      }
-      
-      logger.debug('Fetching all logs with options:', options);
-      
-      const logs = await databases.listDocuments(
-        DATABASE_ID,
-        LOGS_COLLECTION_ID,
-        queries,
-        limit,
-        (page - 1) * limit
-      );
-      
-      logger.debug(`Found ${logs.total} logs total`);
-      
-      // Generate summary statistics
-      const summary = await this.generateLogsSummary(null, logs.documents);
-      
-      // Calculate pagination
-      const totalPages = Math.ceil(logs.total / limit);
-      const pagination = {
-        total: logs.total,
-        totalPages,
-        currentPage: parseInt(page, 10),
-        limit: parseInt(limit, 10),
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1
-      };
-      
-      return {
-        logs: logs.documents.map(this.formatLog),
-        pagination,
-        summary
-      };
-    } catch (error) {
-      logger.error(`Error getting all logs: ${error.message}`);
-      // Return empty results instead of throwing
-      return {
-        logs: [],
-        pagination: {
-          total: 0,
-          totalPages: 0,
-          currentPage: parseInt(options.page || 1, 10),
-          limit: parseInt(options.limit || 10, 10),
-          hasNextPage: false,
-          hasPrevPage: false
-        },
-        summary: this.getEmptySummary()
-      };
-    }
-  }
-  
-  /**
-   * Count logs for a user
-   * @param {string} userId - User ID
-   * @returns {number} - Count of logs
-   */
-  async countUserLogs(userId) {
-    try {
-      logger.debug(`Counting logs for user: ${userId}`);
-      
-      const logs = await databases.listDocuments(
-        DATABASE_ID,
-        LOGS_COLLECTION_ID,
-        [Query.equal('userId', userId)]
-      );
-      
-      logger.debug(`Found ${logs.total} logs for user ${userId}`);
-      
-      return logs.total;
-    } catch (error) {
-      logger.error(`Error counting user logs: ${error.message}`);
-      return 0;
-    }
-  }
-  
-  /**
    * Export logs to JSON format
    * @param {Array} logs - Array of logs
    * @returns {string} - JSON string
@@ -613,101 +535,6 @@ class LogService {
     });
     
     return [header, ...rows].join('\n');
-  }
-  
-  /**
-   * Format log data from Appwrite format
-   * @param {Object} log - Log from Appwrite
-   * @returns {Object} - Formatted log
-   */
-  formatLog(log) {
-    try {
-      // Parse metadata safely
-      let parsedMetadata = {};
-      if (log.metadata) {
-        try {
-          parsedMetadata = JSON.parse(log.metadata);
-          
-          // Handle email arrays in metadata if they exist
-          if (parsedMetadata.email && Array.isArray(parsedMetadata.email)) {
-            parsedMetadata.email = parsedMetadata.email[0];
-          }
-        } catch (parseError) {
-          logger.warn(`Could not parse log metadata: ${parseError.message}`);
-          parsedMetadata = { raw: log.metadata };
-        }
-      }
-      
-      // Parse details safely
-      let parsedDetails = {};
-      if (log.details) {
-        try {
-          parsedDetails = JSON.parse(log.details);
-        } catch (parseError) {
-          logger.warn(`Could not parse log details: ${parseError.message}`);
-          parsedDetails = { raw: log.details };
-        }
-      }
-      
-      // Parse tags safely
-      let parsedTags = [];
-      if (log.tags) {
-        try {
-          parsedTags = JSON.parse(log.tags);
-        } catch (parseError) {
-          logger.warn(`Could not parse log tags: ${parseError.message}`);
-        }
-      }
-      
-      // Parse related logs safely
-      let parsedRelatedLogs = [];
-      if (log.relatedLogs) {
-        try {
-          parsedRelatedLogs = JSON.parse(log.relatedLogs);
-        } catch (parseError) {
-          logger.warn(`Could not parse related logs: ${parseError.message}`);
-        }
-      }
-      
-      return {
-        id: log.$id,
-        type: log.type,
-        action: log.action,
-        message: log.message,
-        userId: log.userId,
-        siteId: log.siteId || null,
-        siteName: log.siteName || null,
-        status: log.status || 'success',
-        severity: log.severity || 'low',
-        details: parsedDetails,
-        metadata: parsedMetadata,
-        tags: parsedTags,
-        relatedLogs: parsedRelatedLogs,
-        duration: parseFloat(log.duration) || 0,
-        ip: log.ip,
-        createdAt: log.createdAt || log.$createdAt // Use the explicit createdAt field or fallback to Appwrite's internal $createdAt field
-      };
-    } catch (error) {
-      logger.error(`Error formatting log: ${error.message}`);
-      // Return basic log if parsing fails
-      return {
-        id: log.$id,
-        type: log.type || 'unknown',
-        action: log.action || 'unknown',
-        message: log.message || 'Unknown log message',
-        userId: log.userId || 'unknown',
-        siteId: log.siteId || null,
-        siteName: log.siteName || null,
-        status: log.status || 'success',
-        severity: log.severity || 'low',
-        details: {},
-        metadata: {},
-        tags: [],
-        relatedLogs: [],
-        duration: 0,
-        createdAt: log.createdAt || log.$createdAt // Use the explicit createdAt field or fallback to Appwrite's internal $createdAt field
-      };
-    }
   }
   
   /**

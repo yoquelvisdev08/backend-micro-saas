@@ -17,64 +17,70 @@ const getLastWeekActivity = async (userId) => {
   
   logger.debug(`Getting activity since ${lastWeek.toISOString()} for user ${userId}`);
   
-  // Get logs from the last 7 days
-  const logsResponse = await databases.listDocuments(
-    DATABASE_ID,
-    LOGS_COLLECTION_ID,
-    [
-      Query.equal('userId', userId),
-      Query.greaterThanEqual('createdAt', lastWeek.toISOString()),
-      Query.limit(500) // Increase limit to ensure we get enough data
-    ]
-  );
-  
-  const logs = logsResponse.documents;
-  logger.debug(`Found ${logs.length} activity logs for user ${userId}`);
-  
-  // Process the results to get a structured format
-  const activityByDay = {};
-  
-  // Initialize the structure with all dates in the last week
-  for (let i = 0; i < 7; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().split('T')[0];
-    activityByDay[dateStr] = {
-      total: 0,
-      actions: {}
-    };
-  }
-  
-  // Fill with actual data
-  logs.forEach(log => {
-    const date = new Date(log.createdAt).toISOString().split('T')[0];
-    const { type, action } = log;
+  try {
+    // Get logs from the last 7 days
+    const logsResponse = await databases.listDocuments(
+      DATABASE_ID,
+      LOGS_COLLECTION_ID,
+      [
+        Query.equal('userId', userId),
+        Query.greaterThanEqual('$createdAt', lastWeek.toISOString()),
+        Query.limit(500) // Increase limit to ensure we get enough data
+      ]
+    );
     
-    if (!activityByDay[date]) {
-      activityByDay[date] = {
+    const logs = logsResponse.documents;
+    logger.debug(`Found ${logs.length} activity logs for user ${userId}`);
+    
+    // Process the results to get a structured format
+    const activityByDay = {};
+    
+    // Initialize the structure with all dates in the last week
+    for (let i = 0; i < 7; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      activityByDay[dateStr] = {
         total: 0,
         actions: {}
       };
     }
     
-    // Increment total for the day
-    activityByDay[date].total += 1;
+    // Fill with actual data
+    logs.forEach(log => {
+      const date = new Date(log.$createdAt).toISOString().split('T')[0];
+      const { type, action } = log;
+      
+      if (!activityByDay[date]) {
+        activityByDay[date] = {
+          total: 0,
+          actions: {}
+        };
+      }
+      
+      // Increment total for the day
+      activityByDay[date].total += 1;
+      
+      // Add or increment action count
+      const actionKey = `${type}:${action}`;
+      if (!activityByDay[date].actions[actionKey]) {
+        activityByDay[date].actions[actionKey] = 0;
+      }
+      activityByDay[date].actions[actionKey] += 1;
+    });
     
-    // Add or increment action count
-    const actionKey = `${type}:${action}`;
-    if (!activityByDay[date].actions[actionKey]) {
-      activityByDay[date].actions[actionKey] = 0;
-    }
-    activityByDay[date].actions[actionKey] += 1;
-  });
-  
-  // Convert to array sorted by date
-  return Object.entries(activityByDay)
-    .map(([date, data]) => ({
-      date,
-      ...data
-    }))
-    .sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Convert to array sorted by date
+    return Object.entries(activityByDay)
+      .map(([date, data]) => ({
+        date,
+        ...data
+      }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+  } catch (error) {
+    logger.error(`Error getting activity for user ${userId}: ${error.message}`);
+    // Devolver una estructura vacía en caso de error
+    return [];
+  }
 };
 
 // Objeto con todas las funciones del controlador
@@ -104,7 +110,7 @@ const statsController = {
           LOGS_COLLECTION_ID,
           [
             Query.equal('userId', userId),
-            Query.orderDesc('createdAt'),
+            Query.orderDesc('$createdAt'),
             Query.limit(100)
           ]
         ),
@@ -127,20 +133,19 @@ const statsController = {
           total: logsData.total
         },
         user: {
-          lastLogin: lastLogin ? lastLogin.createdAt : null
+          lastLogin: lastLogin ? lastLogin.$createdAt : null
         },
         activity: {
           lastWeek: lastWeekActivity
         }
       };
 
-      // Log this activity
+      // Log this activity - solo con campos básicos
       LogService.createLog({
         type: 'system',
         action: 'view',
         message: 'User viewed their statistics',
-        userId: req.user.id,
-        createdAt: new Date().toISOString()
+        userId: req.user.id
       }).catch(err => {
         logger.error('Error logging statistics view:', err);
       });
@@ -205,17 +210,6 @@ const statsController = {
         };
       }).sort((a, b) => b.total - a.total);
       
-      // Log this activity
-      LogService.createLog({
-        type: 'system',
-        action: 'view',
-        message: 'User viewed activity distribution',
-        userId: req.user.id,
-        createdAt: new Date().toISOString()
-      }).catch(err => {
-        logger.error('Error logging activity distribution view:', err);
-      });
-      
       sendSuccessResponse(res, 'Distribución de actividad obtenida exitosamente', { distribution });
     } catch (error) {
       logger.error('Error obteniendo distribución de actividad:', error);
@@ -232,17 +226,6 @@ const statsController = {
     // Get stats for the authenticated user (from req.user.id)
     const stats = await statsService.getUserStats(req.user.id);
     
-    // Log this activity
-    LogService.createLog({
-      type: 'user',
-      action: 'view',
-      message: 'User viewed personal statistics',
-      userId: req.user.id,
-      createdAt: new Date().toISOString()
-    }).catch(err => {
-      logger.error('Error logging user stats view:', err);
-    });
-    
     res.status(200).json({
       status: 'success',
       data: stats
@@ -258,17 +241,6 @@ const statsController = {
     const { userId } = req.params;
     const stats = await statsService.getUserStats(userId);
     
-    // Log this admin activity
-    LogService.createLog({
-      type: 'admin',
-      action: 'view',
-      message: `Admin viewed user statistics for user ${userId}`,
-      userId: req.user.id,
-      createdAt: new Date().toISOString()
-    }).catch(err => {
-      logger.error('Error logging admin user stats view:', err);
-    });
-    
     res.status(200).json({
       status: 'success',
       data: stats
@@ -282,17 +254,6 @@ const statsController = {
    */
   getAdminStats: catchAsync(async (req, res) => {
     const stats = await statsService.getAdminStats();
-    
-    // Log this admin activity
-    LogService.createLog({
-      type: 'admin',
-      action: 'view',
-      message: 'Admin viewed platform statistics',
-      userId: req.user.id,
-      createdAt: new Date().toISOString()
-    }).catch(err => {
-      logger.error('Error logging admin stats view:', err);
-    });
     
     res.status(200).json({
       status: 'success',
