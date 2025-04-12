@@ -28,7 +28,8 @@ class LogService {
         type,
         action,
         message: message || `${type}:${action}`,
-        userId
+        userId,
+        createdAt: new Date().toISOString()
       };
       
       // Manejar metadata de forma segura (solo si existe el campo en Appwrite)

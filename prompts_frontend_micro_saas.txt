@@ -1,0 +1,458 @@
+PROMPT 0: Inicialización del Proyecto Frontend
+Crea toda la estructura inicial para un frontend en React (o Next.js) que se conecte con nuestra API de backend. Debe incluir:
+
+1. Instalación de dependencias:
+   - react o next.js
+   - axios para conexión con la API
+   - react-router-dom para rutas (si usas React)
+   - react-hook-form para formularios
+   - zustand o redux toolkit para gestión de estado
+   - tailwindcss o chakra-ui para estilos
+   - framer-motion para animaciones
+   - react-icons para iconos
+   - react-query para manejo de datos y caché
+   - chart.js o recharts para visualizaciones
+   - react-table para tablas avanzadas
+
+2. Estructura de carpetas:
+   - /src
+     - /api (servicios de conexión con el backend)
+     - /components (componentes reutilizables)
+     - /hooks (hooks personalizados)
+     - /pages (páginas principales)
+     - /store (gestión de estado)
+     - /styles (estilos globales)
+     - /utils (utilidades)
+     - /theme (configuración de temas)
+     - /layouts (layouts reutilizables)
+   - .env (vacío)
+   - .env.example (con variables de ejemplo)
+   - .gitignore
+   - README.md
+
+3. Configuración inicial:
+   - Archivo de configuración de API base
+   - Interceptores para añadir token JWT a las peticiones
+   - Manejo global de errores
+   - Componente de carga y notificaciones
+   - Sistema de temas (claro/oscuro)
+
+4. Scripts en package.json:
+   - dev, build, start, lint, test
+
+5. Estilo y diseño base:
+   - Paleta de colores principal: azul moderno (#1E88E5) con acentos en verde (#4CAF50) y alerta en coral (#FF5252)
+   - Tipografía: Inter o Roboto como fuente principal (sans-serif), spacing generoso
+   - Esquema de espaciado consistente con múltiplos de 4px (0.25rem)
+   - Radios de borde: 8px para tarjetas, 4px para botones e inputs
+   - Sombras sutiles para elevación: 0 2px 4px rgba(0,0,0,0.1)
+   - Iconografía coherente con líneas de 1.5px de grosor
+
+------------------------------------------------------------
+
+PROMPT 1: Diseño de Sistema Visual y Componentes Base
+Implementa un sistema de diseño coherente con los siguientes componentes base:
+
+1. Configuración visual global:
+   - Palette de colores:
+     - Primary: #1E88E5 (azul moderno)
+     - Secondary: #6C63FF (púrpura vibrante)
+     - Success: #4CAF50 (verde)
+     - Warning: #FF9800 (naranja)
+     - Error: #FF5252 (coral)
+     - Info: #00BCD4 (cian)
+     - Background: #F8FAFC (gris casi blanco) / #121212 (modo oscuro)
+     - Surface: #FFFFFF / #1E1E1E (modo oscuro)
+     - Text: #333333 / #E0E0E0 (modo oscuro)
+   
+   - Tipografía:
+     - Heading: Inter, 700 weight
+     - Body: Inter, 400 weight  
+     - Mono: JetBrains Mono para código
+     - Escala: 12px, 14px, 16px (base), 18px, 20px, 24px, 30px, 36px, 48px
+
+   - Grid System:
+     - Basado en 12 columnas
+     - Gutters de 16px/24px
+     - Breakpoints: sm (640px), md (768px), lg (1024px), xl (1280px), 2xl (1536px)
+
+2. Componentes atómicos:
+   - Botones:
+     - Primario: Relleno sólido, esquinas ligeramente redondeadas (4px)
+     - Secundario: Outline con color de acento
+     - Terciario: Solo texto con hover sutil
+     - Estados: Default, Hover, Active, Disabled
+     - Tamaños: Small, Medium, Large
+     - Con y sin iconos
+   
+   - Inputs:
+     - Text input: Bordes ligeros, padding vertical 10px, animación de focus
+     - Select: Dropdown personalizado con animación suave
+     - Checkbox/Radio: Animación de selección con transición
+     - Toggle Switch: Con animación fluida
+     - Search: Con icono y botón integrado
+
+   - Feedback:
+     - Alerts: Con iconos, bordes, y colores según tipo
+     - Toast notifications: Aparecen desde esquina, con progreso de autocierre
+     - Skeleton loaders: Con pulso animado
+     - Empty states: Ilustraciones minimalistas
+
+3. Layout y navegación:
+   - Navbar: Fija en desktop, sticky en mobile, con dropdown para usuario
+   - Sidebar: Colapsable, con iconos y tooltips
+   - Footer: Minimalista con links esenciales
+   - Breadcrumbs: Con separadores modernos
+   - Tabs: Con indicador animado de tab activo
+
+4. Características:
+   - Modo oscuro/claro con transición suave
+   - Animaciones sutiles en transiciones (150-300ms)
+   - Microinteracciones en hover y click
+   - Efectos de elevación con sombras graduales
+   - Espaciado consistente (sistema de 4px)
+
+5. Documentación:
+   - Storybook para visualizar componentes
+   - Guía de uso para cada componente
+   - Tokens de diseño como variables CSS/Tailwind
+
+------------------------------------------------------------
+
+PROMPT 2: Sistema de Autenticación y Registro
+Implementa la interfaz de usuario para autenticación con todas las características de seguridad necesarias:
+
+1. Componentes:
+   - Formulario de registro: Layout limpio con validación inline, ilustración lateral
+   - Formulario de login: Minimalista, con opción de "recordar usuario"
+   - Página de perfil: Con avatar circular, stats en tarjetas con iconos
+   - Navbar: Avatar con menú dropdown para perfil/logout
+
+2. Estilo visual:
+   - Fondos sutiles con gradientes muy suaves en login/registro
+   - Animaciones de transición en errores de formulario (shake suave)
+   - Botones de acción principal con efecto de elevación al hover
+   - Iconos que representen cada acción (usuario, candado, etc.)
+   - Ilustraciones modernas tipo "blob" o líneas minimalistas
+   - Tarjetas con sombras sutiles y bordes redondeados (8px)
+
+3. Características:
+   - Validación de formularios con feedback visual inmediato
+   - Almacenamiento seguro del token JWT en localStorage o cookies
+   - Redirección según autenticación con transición fluida
+   - Protección de rutas privadas con skeleton loaders durante verificación
+   - Indicadores de carga durante peticiones (spinner minimalista)
+   - Manejo y visualización de errores con mensajes claros y acciones sugeridas
+   - Autocompletado seguro
+
+4. Servicios de API:
+   - register(), login(), getProfile(), logout()
+   - Interceptores para renovar token cuando expire
+   - Lógica para recordar usuario
+
+------------------------------------------------------------
+
+PROMPT 3: Gestión de Sitios (CRUD)
+Desarrolla la interfaz para administrar los sitios monitoreados por el usuario:
+
+1. Componentes:
+   - Lista de sitios: Tarjetas con preview de sitio, stats clave y menú de acciones
+   - Formulario crear/editar: Layout de dos columnas, preview en tiempo real
+   - Vista detallada: Header con imagen de sitio, tabs para diferentes secciones
+   - Modal de confirmación: Con ilustración relacionada a la acción
+   - Indicadores visuales: Badges de estado (activo, inactivo, error)
+
+2. Estilo visual:
+   - Tarjetas con hover effect sutil (elevación + highlight)
+   - Animación de entrada/salida en listas (fade + slide)
+   - Colores semánticos para estados (verde=activo, amarillo=warning, rojo=error)
+   - Thumbnails de sitios con skeleton loader mientras cargan
+   - Iconos de acción con tooltips en hover
+   - Transiciones suaves entre estados (loading, error, success)
+
+3. Características:
+   - Paginación moderna con indicador "1 de X páginas"
+   - Filtrado con chips/badges visuales que muestran filtros activos
+   - Validación de URL con feedback visual y sugerencias
+   - Previsualización con miniatura del sitio
+   - Notificaciones de éxito/error con animaciones sutiles
+   - Optimistic UI con indicadores de "guardando..."
+
+4. Servicios de API:
+   - getSites(), getSite(id), createSite(), updateSite(id), deleteSite(id)
+   - Caché y revalidación con react-query
+
+------------------------------------------------------------
+
+PROMPT 4: Panel de Logs y Actividad
+Crea un panel para visualizar los logs de actividad con filtros avanzados:
+
+1. Componentes:
+   - Tabla de logs: Diseño compacto, filas con colores según severidad
+   - Gráficos de actividad: Visualizaciones limpias con tooltips detallados
+   - Exportación: Botones con iconos descriptivos (CSV, PDF)
+   - Detalles expandibles: Animación suave de expansión/colapso
+
+2. Estilo visual:
+   - Paleta monocromática con acentos de color para severidad
+   - Headers de tabla con iconos de ordenamiento
+   - Chips para filtros activos con opción de eliminar (×)
+   - Gráficos con animación de entrada y tooltips elegantes
+   - Skeleton loaders mientras cargan los datos
+   - Rows alternados con color muy sutil para mejorar legibilidad
+   - Iconos que representen el tipo de actividad
+
+3. Características:
+   - Filtrado con panel colapsable y chips visuales
+   - Búsqueda con highlight de coincidencia
+   - Ordenamiento con indicadores visuales de dirección
+   - Paginación con opción de "mostrar X por página"
+   - Visualización en tiempo real con indicador de "actualización en vivo"
+   - Modo compacto/expandido para la tabla
+
+4. Servicios de API:
+   - getLogs(queryParams), exportLogs(format)
+   - Polling o websockets para actualizaciones en tiempo real
+
+------------------------------------------------------------
+
+PROMPT 5: Dashboard de Estadísticas
+Implementa un dashboard con visualizaciones de datos y estadísticas:
+
+1. Componentes:
+   - Tarjetas KPI: Diseño minimalista con número grande, icono, y % de cambio
+   - Gráficos: Líneas con gradientes sutiles, donut charts con animaciones
+   - Distribución: Heatmap con escala de colores y tooltips detallados
+   - Stats por sitio: Mini-gráficos spark line en cada fila
+
+2. Estilo visual:
+   - Layout con grid responsivo de 12 columnas
+   - Tarjetas con border-radius consistente (12px)
+   - Sombras sutiles para elevación con hover effect
+   - Gráficos con animaciones de entrada secuenciales
+   - Paleta de colores armónica para diferentes datasets
+   - Micro-interacciones en hover sobre puntos de datos
+   - Tipografía clara con jerarquía visual (tamaño, peso, color)
+
+3. Características:
+   - Selector de rango de fechas con presets (hoy, semana, mes, etc.)
+   - Filtros avanzados en panel colapsable
+   - Tooltips ricos con múltiples datos al hover en gráficos
+   - Opciones de vista (tabla vs. gráfico)
+   - Animaciones fluidas en cambios de datos
+   - Export/share de visualizaciones
+
+4. Servicios de API:
+   - getStats(), getActivityDistribution()
+   - Caché con tiempo de expiración
+   - Optimizaciones para evitar llamadas innecesarias
+
+------------------------------------------------------------
+
+PROMPT 6: Panel de Administración
+Desarrolla un panel de administración exclusivo para usuarios con rol de administrador:
+
+1. Componentes:
+   - Tabla de usuarios: Diseño data-table con acciones inline
+   - Stats globales: Tarjetas destacadas con tendencias
+   - Panel de configuración: Tabs y formularios bien estructurados
+   - Logs globales: Tabla con filtros avanzados
+
+2. Estilo visual:
+   - Header distintivo con badge "Admin"
+   - Esquema de color ligeramente diferente para distinguir del área normal
+   - Iconos de administración consistentes (escudo, engranaje, etc.)
+   - Modales de confirmación para acciones críticas con ilustraciones
+   - Tablas con ordenamiento visual y filtros inline
+   - Badges para roles de usuario con colores distintivos
+
+3. Características:
+   - Búsqueda global con resultados agrupados por categoría
+   - Filtros avanzados colapsables
+   - Acciones por lote con selección múltiple
+   - Feedback visual para operaciones críticas
+   - Historial de acciones administrativas
+   - Vista previa de usuario "como si fueras..."
+
+4. Servicios de API:
+   - getUsers(), updateUserRole(userId), getUserStats(userId)
+   - Validación de permisos en frontend
+
+------------------------------------------------------------
+
+PROMPT 7: Configuración de Webhooks
+Implementa la interfaz para configurar webhooks para integraciones externas:
+
+1. Componentes:
+   - Formulario: Diseño de card con campos bien espaciados
+   - Historial: Tabla con iconos de éxito/error por evento
+   - Botón de prueba: Destacado con feedback visual de resultado
+
+2. Estilo visual:
+   - Iconografía técnica (conectores, API, código)
+   - Diagrama visual de flujo del webhook
+   - Code snippets con syntax highlighting
+   - Animación sutil para mostrar el flujo de datos
+   - Colores para estados (configurado, activo, inactivo, error)
+   - Badges para tipos de eventos
+
+3. Características:
+   - Validación de URL con feedback instantáneo
+   - Selector de eventos con descripciones
+   - Log visual de intentos con expandible para detalles
+   - Editor para headers personalizados con autocompletado
+   - Generación de ejemplos de payload
+
+4. Servicios de API:
+   - setWebhook(url), testWebhook(), deleteWebhook()
+
+------------------------------------------------------------
+
+PROMPT 8: Gestión de Configuraciones del Usuario
+Desarrolla un panel para que los usuarios gestionen su configuración personal:
+
+1. Componentes:
+   - Perfil: Avatar con opción de upload, campos de datos personales
+   - Seguridad: Cambio de contraseña con medidor de fortaleza
+   - Notificaciones: Toggles agrupados por categoría
+   - Tema: Selector visual de tema con preview
+   - Preferencias: Opciones con descripciones claras
+
+2. Estilo visual:
+   - Secciones claramente definidas con iconos representativos
+   - Animaciones suaves en cambios (especialmente tema)
+   - Feedback visual inmediato al cambiar configuraciones
+   - Indicadores de guardado (spinner, checkmark)
+   - Previews visuales de opciones donde sea posible
+   - Modals/popovers para confirmaciones importantes
+
+3. Características:
+   - Guardado automático vs. botón de guardar (según preferencia)
+   - Previsualización de cambios antes de confirmar
+   - Historial de cambios recientes
+   - Exportar/importar configuraciones
+   - Reset a valores por defecto
+
+4. Servicios de API:
+   - updateProfile(), changePassword(), updatePreferences()
+
+------------------------------------------------------------
+
+PROMPT 9: Sistema de Notificaciones
+Implementa un sistema de notificaciones en tiempo real para el usuario:
+
+1. Componentes:
+   - Indicador en navbar: Badge con contador y dot de notificación
+   - Panel desplegable: Lista con ordenamiento cronológico
+   - Página completa: Filtros y estado de notificaciones
+   - Ajustes: Toggles para tipos de notificación
+
+2. Estilo visual:
+   - Dot de notificación con animación sutil de pulso
+   - Paneles con esquinas redondeadas y sombra flotante
+   - Iconos específicos para cada tipo de notificación
+   - Etiquetas de tiempo relativo (hace 5 min)
+   - Colores según prioridad/tipo
+   - Animaciones de entrada/salida fluidas
+   - Indicador visual de no leídas vs leídas
+
+3. Características:
+   - Agrupamiento inteligente por categoría/origen
+   - Marcar como leída con swipe o click
+   - Acciones directas desde la notificación
+   - Mostrar/ocultar por tipo
+   - Preferencias de notificación por tipo
+
+4. Integración:
+   - Polling con intervalo configurable
+   - Animación sutil para nuevas notificaciones
+   - Badge persistente en favicon
+
+------------------------------------------------------------
+
+PROMPT 10: Optimización y Performance
+Mejora la performance general de la aplicación:
+
+1. Optimizaciones:
+   - Lazy loading con skeleton placeholders
+   - Memoización con useMemo y useCallback
+   - Code splitting con transiciones fluidas
+   - Precarga inteligente de rutas probables
+   - Virtualized lists para datos extensos
+
+2. Caché:
+   - Estrategia stale-while-revalidate con react-query
+   - Persistencia en localStorage/IndexedDB
+   - Prefetching de datos críticos
+   - Invalidación selectiva de cache
+
+3. Feedback visual:
+   - Skeleton screens con animación de pulso
+   - Loaders minimalistas en operaciones cortas
+   - Progress bars para operaciones largas
+   - Transiciones entre estados (120-250ms)
+   - Indicadores de "trabajando en segundo plano"
+
+4. Animaciones y microinteracciones:
+   - Entrada/salida de componentes con spring physics
+   - Transiciones entre rutas con shared elements
+   - Feedback táctil en mobile (haptics)
+   - Cursor interactions (hover effects, click ripples)
+   - Scroll animations (parallax sutil, reveal)
+
+------------------------------------------------------------
+
+PROMPT 11: Despliegue y CI/CD
+Configura el despliegue de la aplicación frontend:
+
+1. Preparación:
+   - Optimización de assets (imágenes, fuentes)
+   - Minificación y tree-shaking agresivo
+   - Code splitting por rutas y vendor
+   - Preloading de recursos críticos
+   - PWA con service worker
+
+2. Plataformas de despliegue:
+   - Vercel para Next.js con preview deployments
+   - Layout y UX específico para mobile/tablet/desktop
+   - Configuración de dominio personalizado y HTTPS
+
+3. CI/CD:
+   - Lighthouse CI para métricas de performance
+   - A11y tests automáticos
+   - Visual regression testing
+   - Semantic versioning automatizado
+
+4. Monitoring:
+   - Error tracking con Sentry
+   - Analytics para UX y performance
+   - User journey tracking
+
+------------------------------------------------------------
+
+PROMPT 12: Integración con API y Gestión de Errores
+Mejora la integración con la API y el manejo de errores:
+
+1. Centralización:
+   - Servicios con naming consistente con endpoints
+   - Error handling unificado con traducciones amigables
+   - Retry con backoff exponencial para errores temporales
+   - Circuit breaker para evitar cascada de fallos
+
+2. UI de errores:
+   - Pantalla 404 con ilustración y sugerencias
+   - Error boundaries con fallbacks elegantes
+   - Mensajes de error contextualmente relevantes
+   - Toasts/alerts con acciones sugeridas
+
+3. Estados vacíos y carga:
+   - Empty states con ilustraciones contextuales
+   - Skeleton loaders anatómicos (imitan el layout final)
+   - Errores inline vs. página completa según contexto
+   - Posibilidad de retry desde la UI
+
+4. Offline support:
+   - Indicador visual del estado de conexión
+   - Optimistic updates con sync cuando vuelva online
+   - Caché persistente para funcionalidad offline
+   - Queue de operaciones pendientes con status
