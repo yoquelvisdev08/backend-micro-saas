@@ -1,0 +1,758 @@
+{
+  "timestamp": "2025-04-13T10:59:25.653319",
+  "tests": [
+    {
+      "endpoint": "/api/auth/register",
+      "method": "POST",
+      "timestamp": "2025-04-13T10:59:27.420325",
+      "success": true,
+      "payload": {
+        "name": "Test User",
+        "email": "test_1744556365@example.com",
+        "password": "Test123456!"
+      },
+      "response": {
+        "success": true,
+        "message": "User registered successfully",
+        "data": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZmJkMTRmNWFkNDNjMDc3ODM1IiwiZW1haWwiOiJ0ZXN0XzE3NDQ1NTYzNjVAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDQ1NTYzNjcsImV4cCI6MTc0NzE0ODM2N30.MJrXbQU_mNYxgPkNdyCJ504UiY7jnkW_MFGqnBI2oH8",
+          "user": {
+            "id": "67fbd14f5ad43c077835",
+            "name": "Test User",
+            "email": "test_1744556365@example.com"
+          }
+        }
+      },
+      "status_code": 201
+    },
+    {
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "timestamp": "2025-04-13T10:59:27.973379",
+      "success": true,
+      "payload": {
+        "email": "test_1744556365@example.com",
+        "password": "Test123456!"
+      },
+      "response": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZmJkMTRmNWFkNDNjMDc3ODM1IiwiZW1haWwiOiJ0ZXN0XzE3NDQ1NTYzNjVAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDQ1NTYzNjcsImV4cCI6MTc0NzE0ODM2N30.MJrXbQU_mNYxgPkNdyCJ504UiY7jnkW_MFGqnBI2oH8",
+          "user": {
+            "id": "67fbd14f5ad43c077835",
+            "name": "Test User",
+            "email": "test_1744556365@example.com"
+          }
+        }
+      },
+      "status_code": 200
+    },
+    {
+      "endpoint": "/api/auth/me",
+      "method": "GET",
+      "timestamp": "2025-04-13T10:59:28.583841",
+      "success": true,
+      "payload": null,
+      "response": {
+        "success": true,
+        "message": "User fetched successfully",
+        "data": {
+          "user": {
+            "id": "67fbd14f5ad43c077835",
+            "name": "Test User",
+            "email": "test_1744556365@example.com"
+          }
+        }
+      },
+      "status_code": 200
+    },
+    {
+      "endpoint": "/api/sites",
+      "method": "POST",
+      "timestamp": "2025-04-13T10:59:29.156970",
+      "success": true,
+      "payload": {
+        "name": "Portfolio Testing Site",
+        "url": "https://portafolio-six-sigma-45.vercel.app",
+        "monitorSettings": {
+          "checkFrequency": "daily",
+          "enableAlerts": true,
+          "checkPerformance": true,
+          "checkKeywords": true,
+          "alertThreshold": 2000
+        },
+        "keywords": "portfolio,developer,project,web"
+      },
+      "response": {
+        "success": true,
+        "message": "Site created successfully",
+        "data": {
+          "site": {
+            "id": "67fbd1511abb480eb7a0",
+            "name": "Portfolio Testing Site",
+            "url": "https://portafolio-six-sigma-45.vercel.app",
+            "userId": "67fbd14f5ad43c077835",
+            "status": "active",
+            "createdAt": "2025-04-13T14:59:29.039Z",
+            "updatedAt": "2025-04-13T14:59:29.039Z"
+          }
+        }
+      },
+      "status_code": 201
+    },
+    {
+      "endpoint": "/api/sites",
+      "method": "GET",
+      "timestamp": "2025-04-13T10:59:30.799598",
+      "success": true,
+      "payload": null,
+      "response": {
+        "success": true,
+        "message": "Sites retrieved successfully",
+        "data": {
+          "sites": [
+            {
+              "id": "67fbd1511abb480eb7a0",
+              "name": "Portfolio Testing Site",
+              "url": "https://portafolio-six-sigma-45.vercel.app",
+              "userId": "67fbd14f5ad43c077835",
+              "status": "active",
+              "createdAt": "2025-04-13T14:59:29.039Z",
+              "updatedAt": "2025-04-13T14:59:29.039Z"
+            }
+          ]
+        }
+      },
+      "status_code": 200
+    },
+    {
+      "endpoint": "/api/sites/67fbd1511abb480eb7a0",
+      "method": "GET",
+      "timestamp": "2025-04-13T10:59:32.518724",
+      "success": true,
+      "payload": null,
+      "response": {
+        "success": true,
+        "message": "Site retrieved successfully",
+        "data": {
+          "site": {
+            "id": "67fbd1511abb480eb7a0",
+            "name": "Portfolio Testing Site",
+            "url": "https://portafolio-six-sigma-45.vercel.app",
+            "userId": "67fbd14f5ad43c077835",
+            "status": "active",
+            "createdAt": "2025-04-13T14:59:29.039Z",
+            "updatedAt": "2025-04-13T14:59:29.039Z"
+          }
+        }
+      },
+      "status_code": 200
+    },
+    {
+      "endpoint": "/api/sites/67fbd1511abb480eb7a0",
+      "method": "PUT",
+      "timestamp": "2025-04-13T10:59:34.439702",
+      "success": true,
+      "payload": {
+        "name": "Portfolio Testing Site (Updated)",
+        "url": "https://portafolio-six-sigma-45.vercel.app"
+      },
+      "response": {
+        "success": true,
+        "message": "Site updated successfully",
+        "data": {
+          "site": {
+            "id": "67fbd1511abb480eb7a0",
+            "name": "Portfolio Testing Site (Updated)",
+            "url": "https://portafolio-six-sigma-45.vercel.app",
+            "userId": "67fbd14f5ad43c077835",
+            "status": "active",
+            "createdAt": "2025-04-13T14:59:29.039Z",
+            "updatedAt": "2025-04-13T14:59:34.278Z"
+          }
+        }
+      },
+      "status_code": 200
+    },
+    {
+      "endpoint": "/api/logs",
+      "method": "GET",
+      "timestamp": "2025-04-13T10:59:36.161590",
+      "success": true,
+      "payload": null,
+      "response": {
+        "success": true,
+        "message": "Logs retrieved successfully",
+        "data": {
+          "logs": [
+            {
+              "id": "67fbd1567935ee2f139c",
+              "createdAt": "2025-04-13T14:59:34.497+00:00",
+              "type": "site",
+              "action": "update",
+              "message": "Updated site: Portfolio Testing Site (Updated)",
+              "userId": "67fbd14f5ad43c077835",
+              "metadata": {
+                "siteId": "67fbd1511abb480eb7a0",
+                "changes": {
+                  "name": "Portfolio Testing Site (Updated)",
+                  "url": "https://portafolio-six-sigma-45.vercel.app"
+                }
+              }
+            },
+            {
+              "id": "67fbd15616a59284be79",
+              "createdAt": "2025-04-13T14:59:34.093+00:00",
+              "type": "site",
+              "action": "update",
+              "message": "site: update",
+              "userId": "67fbd14f5ad43c077835",
+              "metadata": {
+                "path": "/api/sites/67fbd1511abb480eb7a0",
+                "method": "PUT"
+              },
+              "ip": "148.101.59.104"
+            },
+            {
+              "id": "67fbd1549345e65cff83",
+              "createdAt": "2025-04-13T14:59:32.604+00:00",
+              "type": "site",
+              "action": "view",
+              "message": "Viewed site: Portfolio Testing Site",
+              "userId": "67fbd14f5ad43c077835",
+              "metadata": {
+                "siteId": "67fbd1511abb480eb7a0"
+              }
+            },
+            {
+              "id": "67fbd154731c3b4dcbfe",
+              "createdAt": "2025-04-13T14:59:32.472+00:00",
+              "type": "site",
+              "action": "view",
+              "message": "site: view",
+              "userId": "67fbd14f5ad43c077835",
+              "metadata": {
+                "path": "/api/sites/67fbd1511abb480eb7a0",
+                "method": "GET"
+              },
+              "ip": "148.101.59.104"
+            },
+            {
+              "id": "67fbd152b9bf485683ee",
+              "createdAt": "2025-04-13T14:59:30.761+00:00",
+              "type": "site",
+              "action": "list",
+              "message": "User viewed their sites",
+              "userId": "67fbd14f5ad43c077835",
+              "metadata": {}
+            },
+            {
+              "id": "67fbd15299470b91b766",
+              "createdAt": "2025-04-13T14:59:30.628+00:00",
+              "type": "site",
+              "action": "view",
+              "message": "site: view",
+              "userId": "67fbd14f5ad43c077835",
+              "metadata": {
+                "path": "/api/sites",
+                "method": "GET"
+              },
+              "ip": "148.101.59.104"
+            },
+            {
+              "id": "67fbd1513af6bcc473e9",
+              "createdAt": "2025-04-13T14:59:29.242+00:00",
+              "type": "site",
+              "action": "create",
+              "message": "Created new site: Portfolio Testing Site",
+              "userId": "67fbd14f5ad43c077835",
+              "metadata": {
+                "siteId": "67fbd1511abb480eb7a0",
+                "name": "Portfolio Testing Site",
+                "url": "https://portafolio-six-sigma-45.vercel.app"
+              }
+            },
+            {
+              "id": "67fbd1511b3940250a3d",
+              "createdAt": "2025-04-13T14:59:29.112+00:00",
+              "type": "site",
+              "action": "create",
+              "message": "site: create",
+              "userId": "67fbd14f5ad43c077835",
+              "metadata": {
+                "path": "/api/sites",
+                "method": "POST"
+              },
+              "ip": "148.101.59.104"
+            },
+            {
+              "id": "67fbd1509e9bcf92d1e5",
+              "createdAt": "2025-04-13T14:59:28.650+00:00",
+              "type": "auth",
+              "action": "view",
+              "message": "User viewed their profile",
+              "userId": "67fbd14f5ad43c077835",
+              "metadata": {},
+              "ip": "148.101.59.104"
+            },
+            {
+              "id": "67fbd1507099a0228a4a",
+              "createdAt": "2025-04-13T14:59:28.462+00:00",
+              "type": "auth",
+              "action": "view",
+              "message": "auth: view",
+              "userId": "67fbd14f5ad43c077835",
+              "metadata": {
+                "path": "/api/auth/me",
+                "method": "GET"
+              },
+              "ip": "148.101.59.104"
+            },
+            {
+              "id": "67fbd1500ceec96beaca",
+              "createdAt": "2025-04-13T14:59:28.053+00:00",
+              "type": "auth",
+              "action": "login",
+              "message": "User logged in: test_1744556365@example.com",
+              "userId": "67fbd14f5ad43c077835",
+              "metadata": {
+                "email": "test_1744556365@example.com"
+              },
+              "ip": "148.101.59.104"
+            },
+            {
+              "id": "67fbd14f79b77e954455",
+              "createdAt": "2025-04-13T14:59:27.499+00:00",
+              "type": "auth",
+              "action": "register",
+              "message": "User registered: test_1744556365@example.com",
+              "userId": "67fbd14f5ad43c077835",
+              "metadata": {
+                "name": "Test User",
+                "email": "test_1744556365@example.com"
+              }
+            }
+          ],
+          "anomalies": []
+        }
+      },
+      "status_code": 200
+    },
+    {
+      "endpoint": "/api/stats",
+      "method": "GET",
+      "timestamp": "2025-04-13T10:59:37.726818",
+      "success": true,
+      "payload": null,
+      "response": {
+        "success": true,
+        "message": "Estad\u00edsticas obtenidas exitosamente",
+        "data": {
+          "stats": {
+            "sites": {
+              "total": 1
+            },
+            "logs": {
+              "total": 14
+            },
+            "user": {
+              "lastLogin": "2025-04-13T14:59:28.053+00:00"
+            },
+            "activity": {
+              "lastWeek": [
+                {
+                  "date": "2025-04-07",
+                  "total": 0,
+                  "actions": {}
+                },
+                {
+                  "date": "2025-04-08",
+                  "total": 0,
+                  "actions": {}
+                },
+                {
+                  "date": "2025-04-09",
+                  "total": 0,
+                  "actions": {}
+                },
+                {
+                  "date": "2025-04-10",
+                  "total": 0,
+                  "actions": {}
+                },
+                {
+                  "date": "2025-04-11",
+                  "total": 0,
+                  "actions": {}
+                },
+                {
+                  "date": "2025-04-12",
+                  "total": 0,
+                  "actions": {}
+                },
+                {
+                  "date": "2025-04-13",
+                  "total": 14,
+                  "actions": {
+                    "auth:register": 1,
+                    "auth:login": 1,
+                    "auth:view": 2,
+                    "site:create": 2,
+                    "site:view": 3,
+                    "site:list": 1,
+                    "site:update": 2,
+                    "system:view": 2
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "status_code": 200
+    },
+    {
+      "endpoint": "/api/stats/user",
+      "method": "GET",
+      "timestamp": "2025-04-13T10:59:39.492445",
+      "success": true,
+      "payload": null,
+      "response": {
+        "status": "success",
+        "data": {
+          "user": {
+            "id": "67fbd14f5ad43c077835",
+            "name": "Test User",
+            "email": [
+              "test_1744556365@example.com"
+            ],
+            "joinedAt": "2025-04-13T14:59:27.372+00:00"
+          },
+          "stats": {
+            "siteCount": 1,
+            "logCount": 16,
+            "activityByType": {
+              "user": 1,
+              "system": 3,
+              "site": 8,
+              "auth": 4
+            }
+          },
+          "recentActivity": [
+            {
+              "id": "67fbd15b368b89dad7b7",
+              "type": "user",
+              "action": "view",
+              "message": "User viewed personal statistics",
+              "timestamp": "2025-04-13T14:59:39.224+00:00"
+            },
+            {
+              "id": "67fbd159c62ec34be723",
+              "type": "system",
+              "action": "view",
+              "message": "User viewed their statistics",
+              "timestamp": "2025-04-13T14:59:37.812+00:00"
+            },
+            {
+              "id": "67fbd159a005ebc20339",
+              "type": "system",
+              "action": "view",
+              "message": "User viewed statistics",
+              "timestamp": "2025-04-13T14:59:37.655+00:00"
+            },
+            {
+              "id": "67fbd158197ea1b6d35b",
+              "type": "system",
+              "action": "view",
+              "message": "User viewed logs with 12 results",
+              "timestamp": "2025-04-13T14:59:36.104+00:00"
+            },
+            {
+              "id": "67fbd1567935ee2f139c",
+              "type": "site",
+              "action": "update",
+              "message": "Updated site: Portfolio Testing Site (Updated)",
+              "timestamp": "2025-04-13T14:59:34.497+00:00"
+            },
+            {
+              "id": "67fbd15616a59284be79",
+              "type": "site",
+              "action": "update",
+              "message": "site: update",
+              "timestamp": "2025-04-13T14:59:34.093+00:00"
+            },
+            {
+              "id": "67fbd1549345e65cff83",
+              "type": "site",
+              "action": "view",
+              "message": "Viewed site: Portfolio Testing Site",
+              "timestamp": "2025-04-13T14:59:32.604+00:00"
+            },
+            {
+              "id": "67fbd154731c3b4dcbfe",
+              "type": "site",
+              "action": "view",
+              "message": "site: view",
+              "timestamp": "2025-04-13T14:59:32.472+00:00"
+            },
+            {
+              "id": "67fbd152b9bf485683ee",
+              "type": "site",
+              "action": "list",
+              "message": "User viewed their sites",
+              "timestamp": "2025-04-13T14:59:30.761+00:00"
+            },
+            {
+              "id": "67fbd15299470b91b766",
+              "type": "site",
+              "action": "view",
+              "message": "site: view",
+              "timestamp": "2025-04-13T14:59:30.628+00:00"
+            }
+          ]
+        }
+      },
+      "status_code": 200
+    },
+    {
+      "endpoint": "/api/stats/activity",
+      "method": "GET",
+      "timestamp": "2025-04-13T10:59:41.016180",
+      "success": true,
+      "payload": null,
+      "response": {
+        "success": true,
+        "message": "Distribuci\u00f3n de actividad obtenida exitosamente",
+        "data": {
+          "distribution": [
+            {
+              "_id": "site",
+              "actions": [
+                {
+                  "action": "create",
+                  "count": 2
+                },
+                {
+                  "action": "view",
+                  "count": 3
+                },
+                {
+                  "action": "list",
+                  "count": 1
+                },
+                {
+                  "action": "update",
+                  "count": 2
+                }
+              ],
+              "total": 8
+            },
+            {
+              "_id": "auth",
+              "actions": [
+                {
+                  "action": "register",
+                  "count": 1
+                },
+                {
+                  "action": "login",
+                  "count": 1
+                },
+                {
+                  "action": "view",
+                  "count": 2
+                }
+              ],
+              "total": 4
+            },
+            {
+              "_id": "system",
+              "actions": [
+                {
+                  "action": "view",
+                  "count": 3
+                }
+              ],
+              "total": 3
+            },
+            {
+              "_id": "user",
+              "actions": [
+                {
+                  "action": "view",
+                  "count": 1
+                }
+              ],
+              "total": 1
+            }
+          ]
+        }
+      },
+      "status_code": 200
+    },
+    {
+      "endpoint": "/api/sites/67fbd1511abb480eb7a0/ssl",
+      "method": "GET",
+      "timestamp": "2025-04-13T10:59:42.942876",
+      "success": true,
+      "payload": null,
+      "response": {
+        "status": "success",
+        "message": "Success",
+        "data": {
+          "message": "Verificaci\u00f3n de SSL completada",
+          "result": {
+            "valid": true,
+            "issuer": {
+              "C": "US",
+              "O": "Let's Encrypt",
+              "CN": "R11"
+            },
+            "subject": {
+              "CN": "*.vercel.app"
+            },
+            "validFrom": "Feb 17 17:02:07 2025 GMT",
+            "validTo": "May 18 17:02:06 2025 GMT",
+            "daysRemaining": 35,
+            "fingerprint": "BE:C5:64:F3:9D:84:B9:A2:9B:BE:C2:3B:DE:FE:C6:32:27:4D:3E:60",
+            "serialNumber": "0489E1FC35A275AFAF372C9A86F80600CDC1",
+            "type": "ssl"
+          }
+        },
+        "timestamp": "2025-04-13T14:59:42.876Z"
+      },
+      "status_code": 200
+    },
+    {
+      "endpoint": "/api/sites/67fbd1511abb480eb7a0/performance",
+      "method": "GET",
+      "timestamp": "2025-04-13T10:59:44.779229",
+      "success": true,
+      "payload": null,
+      "response": {
+        "status": "success",
+        "message": "Success",
+        "data": {
+          "message": "An\u00e1lisis de rendimiento completado",
+          "result": {
+            "loadTime": 34,
+            "pageSize": 0,
+            "resources": {
+              "images": 0,
+              "scripts": 1,
+              "stylesheets": 1,
+              "fonts": 0,
+              "totalElements": 10
+            },
+            "imageDetails": [],
+            "issues": [],
+            "score": 100,
+            "type": "performance"
+          }
+        },
+        "timestamp": "2025-04-13T14:59:44.761Z"
+      },
+      "status_code": 200
+    },
+    {
+      "endpoint": "/api/sites/67fbd1511abb480eb7a0/keywords",
+      "method": "GET",
+      "timestamp": "2025-04-13T10:59:46.625063",
+      "success": true,
+      "payload": null,
+      "response": {
+        "status": "success",
+        "message": "Success",
+        "data": {
+          "message": "An\u00e1lisis de palabras clave completado",
+          "result": {
+            "message": "No hay palabras clave configuradas para verificar",
+            "matches": {},
+            "type": "keywords"
+          }
+        },
+        "timestamp": "2025-04-13T14:59:46.597Z"
+      },
+      "status_code": 200
+    },
+    {
+      "endpoint": "/api/sites/67fbd1511abb480eb7a0/hotspots",
+      "method": "GET",
+      "timestamp": "2025-04-13T10:59:48.638515",
+      "success": true,
+      "payload": null,
+      "response": {
+        "status": "success",
+        "message": "Success",
+        "data": {
+          "message": "Identificaci\u00f3n de puntos cr\u00edticos completada",
+          "result": {
+            "timestamp": "2025-04-13T14:59:48.648Z",
+            "site": {
+              "id": "67fbd1511abb480eb7a0",
+              "name": "Portfolio Testing Site (Updated)",
+              "url": "https://portafolio-six-sigma-45.vercel.app"
+            },
+            "totalIssues": 1,
+            "criticalIssues": 1,
+            "byCategory": {
+              "performance": 0,
+              "security": 1,
+              "accessibility": 0,
+              "seo": 0
+            },
+            "hotspots": [
+              {
+                "category": "security",
+                "type": "invalid-ssl",
+                "severity": "high",
+                "description": "No se pudo obtener informaci\u00f3n del certificado",
+                "recommendation": "Adquirir e instalar un certificado SSL v\u00e1lido",
+                "impact": "Alto impacto en seguridad y confianza del usuario"
+              }
+            ],
+            "overallHealth": {
+              "status": "critical",
+              "percentage": 75,
+              "score": 5
+            },
+            "type": "hotspots"
+          }
+        },
+        "timestamp": "2025-04-13T14:59:48.649Z"
+      },
+      "status_code": 200
+    },
+    {
+      "endpoint": "/api/sites/67fbd1511abb480eb7a0/monitor",
+      "method": "POST",
+      "timestamp": "2025-04-13T11:00:01.347489",
+      "success": true,
+      "payload": null
+    },
+    {
+      "endpoint": "/api/sites/67fbd1511abb480eb7a0/check",
+      "method": "GET",
+      "timestamp": "2025-04-13T11:00:12.694323",
+      "success": true,
+      "payload": null
+    },
+    {
+      "endpoint": "/api/sites/67fbd1511abb480eb7a0/history",
+      "method": "GET",
+      "timestamp": "2025-04-13T11:00:23.048616",
+      "success": true,
+      "payload": null
+    },
+    {
+      "endpoint": "ERROR",
+      "method": "ERROR",
+      "timestamp": "2025-04-13T11:10:24.377145",
+      "success": false,
+      "payload": null,
+      "response": "HTTPSConnectionPool(host='web-production-8d975.up.railway.app', port=443): Max retries exceeded with url: /api/monitor/site/67fbd1511abb480eb7a0/settings (Caused by SSLError(SSLError(1, '[SSL: DECRYPTION_FAILED_OR_BAD_RECORD_MAC] decryption failed or bad record mac (_ssl.c:2633)')))",
+      "notes": "Error durante la ejecuci\u00f3n de pruebas"
+    }
+  ]
+}

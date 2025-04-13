@@ -1,0 +1,544 @@
+API TEST REPORT - 2025-04-13T10:59:25.653319
+================================================================================
+
+TEST #1: POST /api/auth/register
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:27.420325
+Success: Yes
+Status Code: 201
+
+Payload:
+{'email': 'test_1744556365@example.com',
+ 'name': 'Test User',
+ 'password': 'Test123456!'}
+
+Response:
+{'data': {'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZmJkMTRmNWFkNDNjMDc3ODM1IiwiZW1haWwiOiJ0ZXN0XzE3NDQ1NTYzNjVAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDQ1NTYzNjcsImV4cCI6MTc0NzE0ODM2N30.MJrXbQU_mNYxgPkNdyCJ504UiY7jnkW_MFGqnBI2oH8',
+          'user': {'email': 'test_1744556365@example.com',
+                   'id': '67fbd14f5ad43c077835',
+                   'name': 'Test User'}},
+ 'message': 'User registered successfully',
+ 'success': True}
+
+================================================================================
+
+TEST #2: POST /api/auth/login
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:27.973379
+Success: Yes
+Status Code: 200
+
+Payload:
+{'email': 'test_1744556365@example.com', 'password': 'Test123456!'}
+
+Response:
+{'data': {'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZmJkMTRmNWFkNDNjMDc3ODM1IiwiZW1haWwiOiJ0ZXN0XzE3NDQ1NTYzNjVAZXhhbXBsZS5jb20iLCJpYXQiOjE3NDQ1NTYzNjcsImV4cCI6MTc0NzE0ODM2N30.MJrXbQU_mNYxgPkNdyCJ504UiY7jnkW_MFGqnBI2oH8',
+          'user': {'email': 'test_1744556365@example.com',
+                   'id': '67fbd14f5ad43c077835',
+                   'name': 'Test User'}},
+ 'message': 'Login successful',
+ 'success': True}
+
+================================================================================
+
+TEST #3: GET /api/auth/me
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:28.583841
+Success: Yes
+Status Code: 200
+
+Response:
+{'data': {'user': {'email': 'test_1744556365@example.com',
+                   'id': '67fbd14f5ad43c077835',
+                   'name': 'Test User'}},
+ 'message': 'User fetched successfully',
+ 'success': True}
+
+================================================================================
+
+TEST #4: POST /api/sites
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:29.156970
+Success: Yes
+Status Code: 201
+
+Payload:
+{'keywords': 'portfolio,developer,project,web',
+ 'monitorSettings': {'alertThreshold': 2000,
+                     'checkFrequency': 'daily',
+                     'checkKeywords': True,
+                     'checkPerformance': True,
+                     'enableAlerts': True},
+ 'name': 'Portfolio Testing Site',
+ 'url': 'https://portafolio-six-sigma-45.vercel.app'}
+
+Response:
+{'data': {'site': {'createdAt': '2025-04-13T14:59:29.039Z',
+                   'id': '67fbd1511abb480eb7a0',
+                   'name': 'Portfolio Testing Site',
+                   'status': 'active',
+                   'updatedAt': '2025-04-13T14:59:29.039Z',
+                   'url': 'https://portafolio-six-sigma-45.vercel.app',
+                   'userId': '67fbd14f5ad43c077835'}},
+ 'message': 'Site created successfully',
+ 'success': True}
+
+================================================================================
+
+TEST #5: GET /api/sites
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:30.799598
+Success: Yes
+Status Code: 200
+
+Response:
+{'data': {'sites': [{'createdAt': '2025-04-13T14:59:29.039Z',
+                     'id': '67fbd1511abb480eb7a0',
+                     'name': 'Portfolio Testing Site',
+                     'status': 'active',
+                     'updatedAt': '2025-04-13T14:59:29.039Z',
+                     'url': 'https://portafolio-six-sigma-45.vercel.app',
+                     'userId': '67fbd14f5ad43c077835'}]},
+ 'message': 'Sites retrieved successfully',
+ 'success': True}
+
+================================================================================
+
+TEST #6: GET /api/sites/67fbd1511abb480eb7a0
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:32.518724
+Success: Yes
+Status Code: 200
+
+Response:
+{'data': {'site': {'createdAt': '2025-04-13T14:59:29.039Z',
+                   'id': '67fbd1511abb480eb7a0',
+                   'name': 'Portfolio Testing Site',
+                   'status': 'active',
+                   'updatedAt': '2025-04-13T14:59:29.039Z',
+                   'url': 'https://portafolio-six-sigma-45.vercel.app',
+                   'userId': '67fbd14f5ad43c077835'}},
+ 'message': 'Site retrieved successfully',
+ 'success': True}
+
+================================================================================
+
+TEST #7: PUT /api/sites/67fbd1511abb480eb7a0
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:34.439702
+Success: Yes
+Status Code: 200
+
+Payload:
+{'name': 'Portfolio Testing Site (Updated)',
+ 'url': 'https://portafolio-six-sigma-45.vercel.app'}
+
+Response:
+{'data': {'site': {'createdAt': '2025-04-13T14:59:29.039Z',
+                   'id': '67fbd1511abb480eb7a0',
+                   'name': 'Portfolio Testing Site (Updated)',
+                   'status': 'active',
+                   'updatedAt': '2025-04-13T14:59:34.278Z',
+                   'url': 'https://portafolio-six-sigma-45.vercel.app',
+                   'userId': '67fbd14f5ad43c077835'}},
+ 'message': 'Site updated successfully',
+ 'success': True}
+
+================================================================================
+
+TEST #8: GET /api/logs
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:36.161590
+Success: Yes
+Status Code: 200
+
+Response:
+{'data': {'anomalies': [],
+          'logs': [{'action': 'update',
+                    'createdAt': '2025-04-13T14:59:34.497+00:00',
+                    'id': '67fbd1567935ee2f139c',
+                    'message': 'Updated site: Portfolio Testing Site (Updated)',
+                    'metadata': {'changes': {'name': 'Portfolio Testing Site '
+                                                     '(Updated)',
+                                             'url': 'https://portafolio-six-sigma-45.vercel.app'},
+                                 'siteId': '67fbd1511abb480eb7a0'},
+                    'type': 'site',
+                    'userId': '67fbd14f5ad43c077835'},
+                   {'action': 'update',
+                    'createdAt': '2025-04-13T14:59:34.093+00:00',
+                    'id': '67fbd15616a59284be79',
+                    'ip': '148.101.59.104',
+                    'message': 'site: update',
+                    'metadata': {'method': 'PUT',
+                                 'path': '/api/sites/67fbd1511abb480eb7a0'},
+                    'type': 'site',
+                    'userId': '67fbd14f5ad43c077835'},
+                   {'action': 'view',
+                    'createdAt': '2025-04-13T14:59:32.604+00:00',
+                    'id': '67fbd1549345e65cff83',
+                    'message': 'Viewed site: Portfolio Testing Site',
+                    'metadata': {'siteId': '67fbd1511abb480eb7a0'},
+                    'type': 'site',
+                    'userId': '67fbd14f5ad43c077835'},
+                   {'action': 'view',
+                    'createdAt': '2025-04-13T14:59:32.472+00:00',
+                    'id': '67fbd154731c3b4dcbfe',
+                    'ip': '148.101.59.104',
+                    'message': 'site: view',
+                    'metadata': {'method': 'GET',
+                                 'path': '/api/sites/67fbd1511abb480eb7a0'},
+                    'type': 'site',
+                    'userId': '67fbd14f5ad43c077835'},
+                   {'action': 'list',
+                    'createdAt': '2025-04-13T14:59:30.761+00:00',
+                    'id': '67fbd152b9bf485683ee',
+                    'message': 'User viewed their sites',
+                    'metadata': {},
+                    'type': 'site',
+                    'userId': '67fbd14f5ad43c077835'},
+                   {'action': 'view',
+                    'createdAt': '2025-04-13T14:59:30.628+00:00',
+                    'id': '67fbd15299470b91b766',
+                    'ip': '148.101.59.104',
+                    'message': 'site: view',
+                    'metadata': {'method': 'GET', 'path': '/api/sites'},
+                    'type': 'site',
+                    'userId': '67fbd14f5ad43c077835'},
+                   {'action': 'create',
+                    'createdAt': '2025-04-13T14:59:29.242+00:00',
+                    'id': '67fbd1513af6bcc473e9',
+                    'message': 'Created new site: Portfolio Testing Site',
+                    'metadata': {'name': 'Portfolio Testing Site',
+                                 'siteId': '67fbd1511abb480eb7a0',
+                                 'url': 'https://portafolio-six-sigma-45.vercel.app'},
+                    'type': 'site',
+                    'userId': '67fbd14f5ad43c077835'},
+                   {'action': 'create',
+                    'createdAt': '2025-04-13T14:59:29.112+00:00',
+                    'id': '67fbd1511b3940250a3d',
+                    'ip': '148.101.59.104',
+                    'message': 'site: create',
+                    'metadata': {'method': 'POST', 'path': '/api/sites'},
+                    'type': 'site',
+                    'userId': '67fbd14f5ad43c077835'},
+                   {'action': 'view',
+                    'createdAt': '2025-04-13T14:59:28.650+00:00',
+                    'id': '67fbd1509e9bcf92d1e5',
+                    'ip': '148.101.59.104',
+                    'message': 'User viewed their profile',
+                    'metadata': {},
+                    'type': 'auth',
+                    'userId': '67fbd14f5ad43c077835'},
+                   {'action': 'view',
+                    'createdAt': '2025-04-13T14:59:28.462+00:00',
+                    'id': '67fbd1507099a0228a4a',
+                    'ip': '148.101.59.104',
+                    'message': 'auth: view',
+                    'metadata': {'method': 'GET', 'path': '/api/auth/me'},
+                    'type': 'auth',
+                    'userId': '67fbd14f5ad43c077835'},
+                   {'action': 'login',
+                    'createdAt': '2025-04-13T14:59:28.053+00:00',
+                    'id': '67fbd1500ceec96beaca',
+                    'ip': '148.101.59.104',
+                    'message': 'User logged in: test_1744556365@example.com',
+                    'metadata': {'email': 'test_1744556365@example.com'},
+                    'type': 'auth',
+                    'userId': '67fbd14f5ad43c077835'},
+                   {'action': 'register',
+                    'createdAt': '2025-04-13T14:59:27.499+00:00',
+                    'id': '67fbd14f79b77e954455',
+                    'message': 'User registered: test_1744556365@example.com',
+                    'metadata': {'email': 'test_1744556365@example.com',
+                                 'name': 'Test User'},
+                    'type': 'auth',
+                    'userId': '67fbd14f5ad43c077835'}]},
+ 'message': 'Logs retrieved successfully',
+ 'success': True}
+
+================================================================================
+
+TEST #9: GET /api/stats
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:37.726818
+Success: Yes
+Status Code: 200
+
+Response:
+{'data': {'stats': {'activity': {'lastWeek': [{'actions': {},
+                                               'date': '2025-04-07',
+                                               'total': 0},
+                                              {'actions': {},
+                                               'date': '2025-04-08',
+                                               'total': 0},
+                                              {'actions': {},
+                                               'date': '2025-04-09',
+                                               'total': 0},
+                                              {'actions': {},
+                                               'date': '2025-04-10',
+                                               'total': 0},
+                                              {'actions': {},
+                                               'date': '2025-04-11',
+                                               'total': 0},
+                                              {'actions': {},
+                                               'date': '2025-04-12',
+                                               'total': 0},
+                                              {'actions': {'auth:login': 1,
+                                                           'auth:register': 1,
+                                                           'auth:view': 2,
+                                                           'site:create': 2,
+                                                           'site:list': 1,
+                                                           'site:update': 2,
+                                                           'site:view': 3,
+                                                           'system:view': 2},
+                                               'date': '2025-04-13',
+                                               'total': 14}]},
+                    'logs': {'total': 14},
+                    'sites': {'total': 1},
+                    'user': {'lastLogin': '2025-04-13T14:59:28.053+00:00'}}},
+ 'message': 'Estadísticas obtenidas exitosamente',
+ 'success': True}
+
+================================================================================
+
+TEST #10: GET /api/stats/user
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:39.492445
+Success: Yes
+Status Code: 200
+
+Response:
+{'data': {'recentActivity': [{'action': 'view',
+                              'id': '67fbd15b368b89dad7b7',
+                              'message': 'User viewed personal statistics',
+                              'timestamp': '2025-04-13T14:59:39.224+00:00',
+                              'type': 'user'},
+                             {'action': 'view',
+                              'id': '67fbd159c62ec34be723',
+                              'message': 'User viewed their statistics',
+                              'timestamp': '2025-04-13T14:59:37.812+00:00',
+                              'type': 'system'},
+                             {'action': 'view',
+                              'id': '67fbd159a005ebc20339',
+                              'message': 'User viewed statistics',
+                              'timestamp': '2025-04-13T14:59:37.655+00:00',
+                              'type': 'system'},
+                             {'action': 'view',
+                              'id': '67fbd158197ea1b6d35b',
+                              'message': 'User viewed logs with 12 results',
+                              'timestamp': '2025-04-13T14:59:36.104+00:00',
+                              'type': 'system'},
+                             {'action': 'update',
+                              'id': '67fbd1567935ee2f139c',
+                              'message': 'Updated site: Portfolio Testing Site '
+                                         '(Updated)',
+                              'timestamp': '2025-04-13T14:59:34.497+00:00',
+                              'type': 'site'},
+                             {'action': 'update',
+                              'id': '67fbd15616a59284be79',
+                              'message': 'site: update',
+                              'timestamp': '2025-04-13T14:59:34.093+00:00',
+                              'type': 'site'},
+                             {'action': 'view',
+                              'id': '67fbd1549345e65cff83',
+                              'message': 'Viewed site: Portfolio Testing Site',
+                              'timestamp': '2025-04-13T14:59:32.604+00:00',
+                              'type': 'site'},
+                             {'action': 'view',
+                              'id': '67fbd154731c3b4dcbfe',
+                              'message': 'site: view',
+                              'timestamp': '2025-04-13T14:59:32.472+00:00',
+                              'type': 'site'},
+                             {'action': 'list',
+                              'id': '67fbd152b9bf485683ee',
+                              'message': 'User viewed their sites',
+                              'timestamp': '2025-04-13T14:59:30.761+00:00',
+                              'type': 'site'},
+                             {'action': 'view',
+                              'id': '67fbd15299470b91b766',
+                              'message': 'site: view',
+                              'timestamp': '2025-04-13T14:59:30.628+00:00',
+                              'type': 'site'}],
+          'stats': {'activityByType': {'auth': 4,
+                                       'site': 8,
+                                       'system': 3,
+                                       'user': 1},
+                    'logCount': 16,
+                    'siteCount': 1},
+          'user': {'email': ['test_1744556365@example.com'],
+                   'id': '67fbd14f5ad43c077835',
+                   'joinedAt': '2025-04-13T14:59:27.372+00:00',
+                   'name': 'Test User'}},
+ 'status': 'success'}
+
+================================================================================
+
+TEST #11: GET /api/stats/activity
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:41.016180
+Success: Yes
+Status Code: 200
+
+Response:
+{'data': {'distribution': [{'_id': 'site',
+                            'actions': [{'action': 'create', 'count': 2},
+                                        {'action': 'view', 'count': 3},
+                                        {'action': 'list', 'count': 1},
+                                        {'action': 'update', 'count': 2}],
+                            'total': 8},
+                           {'_id': 'auth',
+                            'actions': [{'action': 'register', 'count': 1},
+                                        {'action': 'login', 'count': 1},
+                                        {'action': 'view', 'count': 2}],
+                            'total': 4},
+                           {'_id': 'system',
+                            'actions': [{'action': 'view', 'count': 3}],
+                            'total': 3},
+                           {'_id': 'user',
+                            'actions': [{'action': 'view', 'count': 1}],
+                            'total': 1}]},
+ 'message': 'Distribución de actividad obtenida exitosamente',
+ 'success': True}
+
+================================================================================
+
+TEST #12: GET /api/sites/67fbd1511abb480eb7a0/ssl
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:42.942876
+Success: Yes
+Status Code: 200
+
+Response:
+{'data': {'message': 'Verificación de SSL completada',
+          'result': {'daysRemaining': 35,
+                     'fingerprint': 'BE:C5:64:F3:9D:84:B9:A2:9B:BE:C2:3B:DE:FE:C6:32:27:4D:3E:60',
+                     'issuer': {'C': 'US', 'CN': 'R11', 'O': "Let's Encrypt"},
+                     'serialNumber': '0489E1FC35A275AFAF372C9A86F80600CDC1',
+                     'subject': {'CN': '*.vercel.app'},
+                     'type': 'ssl',
+                     'valid': True,
+                     'validFrom': 'Feb 17 17:02:07 2025 GMT',
+                     'validTo': 'May 18 17:02:06 2025 GMT'}},
+ 'message': 'Success',
+ 'status': 'success',
+ 'timestamp': '2025-04-13T14:59:42.876Z'}
+
+================================================================================
+
+TEST #13: GET /api/sites/67fbd1511abb480eb7a0/performance
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:44.779229
+Success: Yes
+Status Code: 200
+
+Response:
+{'data': {'message': 'Análisis de rendimiento completado',
+          'result': {'imageDetails': [],
+                     'issues': [],
+                     'loadTime': 34,
+                     'pageSize': 0,
+                     'resources': {'fonts': 0,
+                                   'images': 0,
+                                   'scripts': 1,
+                                   'stylesheets': 1,
+                                   'totalElements': 10},
+                     'score': 100,
+                     'type': 'performance'}},
+ 'message': 'Success',
+ 'status': 'success',
+ 'timestamp': '2025-04-13T14:59:44.761Z'}
+
+================================================================================
+
+TEST #14: GET /api/sites/67fbd1511abb480eb7a0/keywords
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:46.625063
+Success: Yes
+Status Code: 200
+
+Response:
+{'data': {'message': 'Análisis de palabras clave completado',
+          'result': {'matches': {},
+                     'message': 'No hay palabras clave configuradas para '
+                                'verificar',
+                     'type': 'keywords'}},
+ 'message': 'Success',
+ 'status': 'success',
+ 'timestamp': '2025-04-13T14:59:46.597Z'}
+
+================================================================================
+
+TEST #15: GET /api/sites/67fbd1511abb480eb7a0/hotspots
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T10:59:48.638515
+Success: Yes
+Status Code: 200
+
+Response:
+{'data': {'message': 'Identificación de puntos críticos completada',
+          'result': {'byCategory': {'accessibility': 0,
+                                    'performance': 0,
+                                    'security': 1,
+                                    'seo': 0},
+                     'criticalIssues': 1,
+                     'hotspots': [{'category': 'security',
+                                   'description': 'No se pudo obtener '
+                                                  'información del certificado',
+                                   'impact': 'Alto impacto en seguridad y '
+                                             'confianza del usuario',
+                                   'recommendation': 'Adquirir e instalar un '
+                                                     'certificado SSL válido',
+                                   'severity': 'high',
+                                   'type': 'invalid-ssl'}],
+                     'overallHealth': {'percentage': 75,
+                                       'score': 5,
+                                       'status': 'critical'},
+                     'site': {'id': '67fbd1511abb480eb7a0',
+                              'name': 'Portfolio Testing Site (Updated)',
+                              'url': 'https://portafolio-six-sigma-45.vercel.app'},
+                     'timestamp': '2025-04-13T14:59:48.648Z',
+                     'totalIssues': 1,
+                     'type': 'hotspots'}},
+ 'message': 'Success',
+ 'status': 'success',
+ 'timestamp': '2025-04-13T14:59:48.649Z'}
+
+================================================================================
+
+TEST #16: POST /api/sites/67fbd1511abb480eb7a0/monitor
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T11:00:01.347489
+Success: Yes
+
+================================================================================
+
+TEST #17: GET /api/sites/67fbd1511abb480eb7a0/check
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T11:00:12.694323
+Success: Yes
+
+================================================================================
+
+TEST #18: GET /api/sites/67fbd1511abb480eb7a0/history
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T11:00:23.048616
+Success: Yes
+
+================================================================================
+
+TEST #19: ERROR ERROR
+--------------------------------------------------------------------------------
+Timestamp: 2025-04-13T11:10:24.377145
+Success: No
+
+Response:
+("HTTPSConnectionPool(host='web-production-8d975.up.railway.app', port=443): "
+ 'Max retries exceeded with url: '
+ '/api/monitor/site/67fbd1511abb480eb7a0/settings (Caused by '
+ "SSLError(SSLError(1, '[SSL: DECRYPTION_FAILED_OR_BAD_RECORD_MAC] decryption "
+ "failed or bad record mac (_ssl.c:2633)')))")
+
+Notes: Error durante la ejecución de pruebas
+
+================================================================================
+
