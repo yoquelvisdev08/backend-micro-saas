@@ -1,4 +1,4 @@
-const { sendErrorResponse } = require('../utils/response.utils');
+const { sendErrorResponse } = require('../utils/responseHandler');
 
 /**
  * Middleware to check if user has admin role
@@ -7,7 +7,7 @@ const { sendErrorResponse } = require('../utils/response.utils');
 exports.isAdmin = (req, res, next) => {
   // Check if user exists and has role admin
   if (!req.user || req.user.role !== 'admin') {
-    return sendErrorResponse(res, 'Access denied: Admin role required', 403);
+    return sendErrorResponse(res, 403, 'Access denied: Admin role required');
   }
   
   next();
@@ -24,14 +24,14 @@ exports.restrictTo = (role) => {
   return (req, res, next) => {
     // Check if user exists and has the required role
     if (!req.user) {
-      return sendErrorResponse(res, 'You must be logged in to access this resource', 401);
+      return sendErrorResponse(res, 401, 'You must be logged in to access this resource');
     }
     
     if (!roles.includes(req.user.role)) {
       return sendErrorResponse(
         res, 
-        `Access denied: Required role: ${role}`, 
-        403
+        403,
+        `Access denied: Required role: ${role}`
       );
     }
     
@@ -50,8 +50,8 @@ exports.hasRoles = (roles) => {
     if (!req.user || !roles.includes(req.user.role)) {
       return sendErrorResponse(
         res, 
-        `Access denied: Required roles: ${roles.join(', ')}`, 
-        403
+        403,
+        `Access denied: Required roles: ${roles.join(', ')}`
       );
     }
     
@@ -61,10 +61,10 @@ exports.hasRoles = (roles) => {
 
 /**
  * Middleware to check if user is the owner of a resource or an admin
- * @param {Function} getResourceUserId - Function to extract user ID from resource
+ * @param {Function|String} resourceType - Function to extract user ID or string specifying resource type
  * @returns {Function} Middleware function
  */
-exports.isResourceOwnerOrAdmin = (getResourceUserId) => {
+exports.isResourceOwnerOrAdmin = (resourceType) => {
   return async (req, res, next) => {
     try {
       // Admins can access any resource
@@ -72,8 +72,72 @@ exports.isResourceOwnerOrAdmin = (getResourceUserId) => {
         return next();
       }
       
-      // Get the user ID from the resource
-      const resourceUserId = await getResourceUserId(req);
+      let resourceUserId;
+      
+      // Handle different ways to specify how to get the resource user ID
+      if (typeof resourceType === 'function') {
+        // If a function was provided, call it to get the user ID
+        resourceUserId = await resourceType(req);
+      } else if (typeof resourceType === 'string') {
+        // If a string was provided, use it as the resource type
+        switch (resourceType) {
+          case 'site':
+            // For sites, get the user ID from the site record
+            // Use the resource ID from req.params.id or req.params.siteId
+            const siteId = req.params.id || req.params.siteId;
+            if (!siteId) {
+              return sendErrorResponse(res, 400, 'Site ID is required');
+            }
+            
+            try {
+              // Get the site from the database using SiteModel or appropriate service
+              const SiteModel = require('../models/site.model');
+              const site = await SiteModel.getById(siteId);
+              
+              if (!site) {
+                return sendErrorResponse(res, 404, 'Site not found');
+              }
+              
+              resourceUserId = site.userId || site.user_id || site.ownerId || site.$ownerId;
+            } catch (error) {
+              console.error('Error getting site:', error);
+              return sendErrorResponse(res, 500, 'Error retrieving site information');
+            }
+            break;
+            
+          // Add cases for other resource types as needed
+          default:
+            return sendErrorResponse(res, 500, `Unknown resource type: ${resourceType}`);
+        }
+      } else if (req.resourceId && req.resourceType) {
+        // If resourceId and resourceType were set on the request object
+        const resourceId = req.resourceId;
+        const resourceTypeName = req.resourceType;
+        
+        switch (resourceTypeName) {
+          case 'site':
+            try {
+              const SiteModel = require('../models/site.model');
+              const site = await SiteModel.getById(resourceId);
+              
+              if (!site) {
+                return sendErrorResponse(res, 404, 'Site not found');
+              }
+              
+              resourceUserId = site.userId || site.user_id || site.ownerId || site.$ownerId;
+            } catch (error) {
+              console.error('Error getting site:', error);
+              return sendErrorResponse(res, 500, 'Error retrieving site information');
+            }
+            break;
+            
+          // Add cases for other resource types as needed
+          default:
+            return sendErrorResponse(res, 500, `Unknown resource type: ${resourceTypeName}`);
+        }
+      } else {
+        return sendErrorResponse(res, 500, 'Invalid resource specification');
+      }
       
       // Check if the user is the owner of the resource
       if (resourceUserId && resourceUserId.toString() === req.user.id.toString()) {
@@ -81,10 +145,10 @@ exports.isResourceOwnerOrAdmin = (getResourceUserId) => {
       }
       
       // If not the owner, deny access
-      return sendErrorResponse(res, 'Access denied: Not the resource owner', 403);
+      return sendErrorResponse(res, 403, 'Access denied: Not the resource owner');
     } catch (error) {
       console.error('Error in resource owner check:', error);
-      return sendErrorResponse(res, 'Error checking resource ownership', 500);
+      return sendErrorResponse(res, 500, 'Error checking resource ownership');
     }
   };
 }; 

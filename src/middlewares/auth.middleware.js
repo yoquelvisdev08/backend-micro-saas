@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { databases, DATABASE_ID, USERS_COLLECTION_ID, Query } = require('../config/appwrite');
-const { sendErrorResponse } = require('../utils/response.utils');
+const { sendErrorResponse } = require('../utils/responseHandler');
 const logger = require('../utils/logger');
 
 // Protect routes - verifies JWT token and attaches user to request
@@ -19,7 +19,7 @@ exports.protect = async (req, res, next) => {
   // Make sure token exists
   if (!token) {
     logger.warn('No token provided in request');
-    return sendErrorResponse(res, 'Not authorized to access this route', 401);
+    return sendErrorResponse(res, 401, 'Not authorized to access this route');
   }
 
   try {
@@ -43,7 +43,7 @@ exports.protect = async (req, res, next) => {
       logger.info(`User found: ${user.$id}`);
     } catch (error) {
       logger.error(`Error retrieving user: ${error.message}`);
-      return sendErrorResponse(res, 'User not found', 401);
+      return sendErrorResponse(res, 401, 'User not found');
     }
     
     // Add user to request with default role
@@ -59,7 +59,7 @@ exports.protect = async (req, res, next) => {
     next();
   } catch (err) {
     logger.error(`Authentication error: ${err.message}`);
-    return sendErrorResponse(res, 'Not authorized to access this route', 401);
+    return sendErrorResponse(res, 401, 'Not authorized to access this route');
   }
 };
 
@@ -68,7 +68,7 @@ exports.authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
       logger.warn('No user object in request');
-      return sendErrorResponse(res, 'Not authorized to access this route', 401);
+      return sendErrorResponse(res, 401, 'Not authorized to access this route');
     }
 
     // We always use 'user' role as default
@@ -79,8 +79,8 @@ exports.authorize = (...roles) => {
       logger.warn(`Access denied: User ${req.user.id} with role ${userRole} tried to access route restricted to ${roles.join(', ')}`);
       return sendErrorResponse(
         res,
-        `Access denied: Required roles: ${roles.join(', ')}`,
-        403
+        403,
+        `Access denied: Required roles: ${roles.join(', ')}`
       );
     }
     

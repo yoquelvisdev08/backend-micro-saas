@@ -14,7 +14,7 @@ const { logActivity } = require('../middlewares/logger.middleware');
 const verifySiteOwnership = (req, res, next) => {
     req.resourceId = req.params.siteId;
     req.resourceType = 'site';
-    isResourceOwnerOrAdmin(req, res, next);
+    return isResourceOwnerOrAdmin('site')(req, res, next);
 };
 
 // Aplicamos autenticación a todas las rutas

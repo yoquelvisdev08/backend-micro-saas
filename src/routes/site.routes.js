@@ -143,8 +143,14 @@ router.route('/')
 
 // Función para obtener el ID de usuario de un sitio
 const getSiteUserId = async (req) => {
-  const site = await Site.findById(req.params.id);
-  return site ? site.userId : null;
+  try {
+    const SiteModel = require('../models/site.model');
+    const site = await SiteModel.getById(req.params.id);
+    return site ? (site.userId || site.user_id || site.ownerId || site.$ownerId) : null;
+  } catch (error) {
+    console.error('Error getting site user ID:', error);
+    return null;
+  }
 };
 
 /**
