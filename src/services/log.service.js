@@ -73,7 +73,7 @@ class LogService {
       return null;
     }
   }
-  
+
   /**
    * Get logs for a user
    * @param {string} userId - User ID
@@ -165,7 +165,7 @@ class LogService {
       );
       
       logger.debug(`Found ${logs.total} logs total`);
-      
+
       return {
         total: logs.total,
         logs: logs.documents.map(this.formatLog)
@@ -203,7 +203,7 @@ class LogService {
       return 0;
     }
   }
-  
+
   /**
    * Format log data from Appwrite format
    * @param {Object} log - Log from Appwrite

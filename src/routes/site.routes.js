@@ -11,6 +11,7 @@ const { protect } = require('../middlewares/auth.middleware');
 const { isResourceOwnerOrAdmin } = require('../middlewares/role.middleware');
 const { logActivity } = require('../middlewares/logger.middleware');
 const Site = require('../models/site.model');
+const monitorController = require('../controllers/monitor.controller');
 
 // Todas las rutas requieren autenticación
 router.use(protect);
@@ -321,5 +322,316 @@ router.route('/:id')
     logActivity('site', 'delete'),
     deleteSite
   );
+
+// ======================= MONITOR ROUTES =======================
+
+/**
+ * @swagger
+ * /api/sites/{id}/monitor:
+ *   post:
+ *     summary: Ejecutar verificación completa del sitio
+ *     description: Realiza un monitoreo completo del sitio con todas las verificaciones configuradas
+ *     tags: [Sitios, Monitoreo]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Verificación completa ejecutada correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     timestamp:
+ *                       type: string
+ *                       format: date-time
+ *                     siteId:
+ *                       type: string
+ *                     siteName:
+ *                       type: string
+ *                     basic:
+ *                       type: object
+ *                     ssl:
+ *                       type: object
+ *                     performance:
+ *                       type: object
+ *                     keywords:
+ *                       type: object
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         description: Sitio no encontrado
+ */
+router.post('/:id/monitor', 
+  logActivity('monitor', 'run-check'),
+  isResourceOwnerOrAdmin('site'),
+  monitorController.runMonitorCheck
+);
+
+/**
+ * @swagger
+ * /api/sites/{id}/check:
+ *   get:
+ *     summary: Verificar disponibilidad básica del sitio
+ *     description: Realiza una verificación rápida de disponibilidad y tiempo de respuesta
+ *     tags: [Sitios, Monitoreo]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Verificación realizada correctamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         description: Sitio no encontrado
+ */
+router.get('/:id/check', 
+  logActivity('monitor', 'basic-check'),
+  isResourceOwnerOrAdmin('site'),
+  monitorController.checkBasic
+);
+
+/**
+ * @swagger
+ * /api/sites/{id}/ssl:
+ *   get:
+ *     summary: Verificar certificado SSL del sitio
+ *     description: Analiza el certificado SSL y devuelve información sobre su validez y fecha de expiración
+ *     tags: [Sitios, Monitoreo]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Verificación SSL realizada correctamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         description: Sitio no encontrado
+ */
+router.get('/:id/ssl', 
+  logActivity('monitor', 'ssl-check'),
+  isResourceOwnerOrAdmin('site'),
+  monitorController.checkSSL
+);
+
+/**
+ * @swagger
+ * /api/sites/{id}/performance:
+ *   get:
+ *     summary: Analizar rendimiento del sitio
+ *     description: Realiza un análisis de rendimiento detallado del sitio
+ *     tags: [Sitios, Monitoreo]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Análisis de rendimiento realizado correctamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         description: Sitio no encontrado
+ */
+router.get('/:id/performance', 
+  logActivity('monitor', 'performance-check'),
+  isResourceOwnerOrAdmin('site'),
+  monitorController.analyzePerformance
+);
+
+/**
+ * @swagger
+ * /api/sites/{id}/hotspots:
+ *   get:
+ *     summary: Identificar puntos críticos del sitio
+ *     description: Analiza el sitio para identificar problemas y oportunidades de mejora
+ *     tags: [Sitios, Monitoreo]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Análisis de puntos críticos realizado correctamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         description: Sitio no encontrado
+ */
+router.get('/:id/hotspots', 
+  logActivity('monitor', 'hotspots-check'),
+  isResourceOwnerOrAdmin('site'),
+  monitorController.identifyHotspots
+);
+
+/**
+ * @swagger
+ * /api/sites/{id}/history:
+ *   get:
+ *     summary: Obtener historial de monitoreo del sitio
+ *     description: Devuelve el historial de verificaciones y métricas del sitio a lo largo del tiempo
+ *     tags: [Sitios, Monitoreo]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Fecha de inicio para filtrar
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Fecha de fin para filtrar
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 100
+ *         description: Máximo de registros a devolver
+ *     responses:
+ *       200:
+ *         description: Historial obtenido correctamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         description: Sitio no encontrado
+ */
+router.get('/:id/history', 
+  logActivity('monitor', 'view-history'),
+  isResourceOwnerOrAdmin('site'),
+  monitorController.getMonitorHistory
+);
+
+/**
+ * @swagger
+ * /api/sites/{id}/keywords:
+ *   get:
+ *     summary: Verificar palabras clave en el sitio
+ *     description: Verifica si las palabras clave configuradas están presentes en el sitio
+ *     tags: [Sitios, Monitoreo]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Verificación de palabras clave realizada correctamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         description: Sitio no encontrado
+ */
+router.get('/:id/keywords', 
+  logActivity('monitor', 'keywords-check'),
+  isResourceOwnerOrAdmin('site'),
+  monitorController.checkKeywords
+);
+
+/**
+ * @swagger
+ * /api/sites/{id}/settings:
+ *   put:
+ *     summary: Actualizar configuración de monitoreo del sitio
+ *     description: Actualiza los parámetros de monitoreo del sitio (frecuencia, umbrales, etc.)
+ *     tags: [Sitios, Monitoreo]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               monitorInterval:
+ *                 type: integer
+ *                 description: Minutos entre verificaciones
+ *               alertThreshold:
+ *                 type: integer
+ *                 description: Umbral en ms para alertas de tiempo de respuesta
+ *               checkSSL:
+ *                 type: boolean
+ *                 description: Verificar SSL
+ *               checkKeywords:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Palabras clave a verificar
+ *               monitorSettings:
+ *                 type: object
+ *                 properties:
+ *                   checkResources:
+ *                     type: boolean
+ *                   checkMobile:
+ *                     type: boolean
+ *                   checkSEO:
+ *                     type: boolean
+ *                   checkPerformance:
+ *                     type: boolean
+ *     responses:
+ *       200:
+ *         description: Configuración actualizada correctamente
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         description: Sitio no encontrado
+ */
+router.put('/:id/settings', 
+  logActivity('monitor', 'update-settings'),
+  isResourceOwnerOrAdmin('site'),
+  monitorController.updateMonitorSettings
+);
 
 module.exports = router; 

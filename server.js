@@ -144,6 +144,7 @@ app.use('/api/logs', require('./src/routes/log.routes'));
 app.use('/api/stats', require('./src/routes/stats.routes'));
 app.use('/api/users', require('./src/routes/user.routes'));
 app.use('/api/admin', require('./src/routes/admin.routes'));
+app.use('/api/monitor', require('./src/routes/monitor.routes'));
 
 // Test route
 app.get('/api/test', (req, res) => {
@@ -159,7 +160,7 @@ app.use((req, res, next) => {
 app.use(errorHandler);
 
 // Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
