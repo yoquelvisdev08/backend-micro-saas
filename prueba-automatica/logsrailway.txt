@@ -1,0 +1,117 @@
+[DEBUG] 2025-04-13T13:50:45.282Z - Log created successfully with ID: 67fbc13535844b80a735
+
+[DEBUG] 2025-04-13T13:50:45.301Z - Found 14 activity logs for user 67fbc12fd3967ea5511d
+
+[DEBUG] 2025-04-13T13:50:45.302Z - Creating log entry: system:view for user 67fbc12fd3967ea5511d
+
+[DEBUG] 2025-04-13T13:50:45.303Z - Log document: {"type":"system","action":"view","message":"User viewed their statistics","userId":"67fbc12fd3967ea5511d","createdAt":"2025-04-13T13:50:45.302Z"}
+
+[DEBUG] 2025-04-13T13:50:45.435Z - Log created successfully with ID: 67fbc1355ab04b2aba11
+
+[INFO] 2025-04-13T13:50:45.608Z - Token verified for user ID: 67fbc12fd3967ea5511d
+
+[INFO] 2025-04-13T13:50:45.750Z - User found: 67fbc12fd3967ea5511d
+
+[INFO] 2025-04-13T13:50:45.751Z - User authenticated: 67fbc12fd3967ea5511d
+
+[DEBUG] 2025-04-13T13:50:45.751Z - Creating log entry: user:view for user 67fbc12fd3967ea5511d
+
+[DEBUG] 2025-04-13T13:50:45.751Z - Log document: {"type":"user","action":"view","message":"User viewed personal statistics","userId":"67fbc12fd3967ea5511d","createdAt":"2025-04-13T13:50:45.751Z","metadata":"{\"path\":\"/api/stats/user\",\"method\":\"GET\"}","ip":"148.101.59.104"}
+
+[DEBUG] 2025-04-13T13:50:45.753Z - Getting user stats for 67fbc12fd3967ea5511d
+
+[DEBUG] 2025-04-13T13:50:45.902Z - Log created successfully with ID: 67fbc135cafbdb338d35
+
+[INFO] 2025-04-13T13:50:46.477Z - Token verified for user ID: 67fbc12fd3967ea5511d
+
+[INFO] 2025-04-13T13:50:46.631Z - User found: 67fbc12fd3967ea5511d
+
+[INFO] 2025-04-13T13:50:46.632Z - User authenticated: 67fbc12fd3967ea5511d
+
+[DEBUG] 2025-04-13T13:50:46.632Z - Creating log entry: system:view for user 67fbc12fd3967ea5511d
+
+[DEBUG] 2025-04-13T13:50:46.632Z - Log document: {"type":"system","action":"view","message":"User viewed activity distribution","userId":"67fbc12fd3967ea5511d","createdAt":"2025-04-13T13:50:46.632Z","metadata":"{\"path\":\"/api/stats/activity\",\"method\":\"GET\"}","ip":"148.101.59.104"}
+
+[DEBUG] 2025-04-13T13:50:46.633Z - Getting activity distribution for user 67fbc12fd3967ea5511d
+
+[DEBUG] 2025-04-13T13:50:46.768Z - Log created successfully with ID: 67fbc136abc9a7367edb
+
+[DEBUG] 2025-04-13T13:50:46.769Z - Found 16 logs for activity distribution
+
+[INFO] 2025-04-13T13:50:47.194Z - Token verified for user ID: 67fbc12fd3967ea5511d
+
+[INFO] 2025-04-13T13:50:47.348Z - User found: 67fbc12fd3967ea5511d
+
+[INFO] 2025-04-13T13:50:47.348Z - User authenticated: 67fbc12fd3967ea5511d
+
+[DEBUG] 2025-04-13T13:50:47.349Z - Creating log entry: monitor:run-check for user 67fbc12fd3967ea5511d
+
+[DEBUG] 2025-04-13T13:50:47.349Z - Log document: {"type":"monitor","action":"run-check","message":"monitor: run-check","userId":"67fbc12fd3967ea5511d","createdAt":"2025-04-13T13:50:47.349Z","metadata":"{\"path\":\"/api/sites/67fbc131a2bbf7b1abff/monitor\",\"method\":\"POST\"}","ip":"148.101.59.104"}
+
+[INFO] 2025-04-13T13:50:50.468Z - User found: 67fbc12fd3967ea5511d
+
+[INFO] 2025-04-13T13:50:50.468Z - User authenticated: 67fbc12fd3967ea5511d
+
+[DEBUG] 2025-04-13T13:50:50.469Z - Creating log entry: monitor:hotspots-check for user 67fbc12fd3967ea5511d
+
+[DEBUG] 2025-04-13T13:50:50.469Z - Log document: {"type":"monitor","action":"hotspots-check","message":"monitor: hotspots-check","userId":"67fbc12fd3967ea5511d","createdAt":"2025-04-13T13:50:50.469Z","metadata":"{\"path\":\"/api/sites/67fbc131a2bbf7b1abff/hotspots\",\"method\":\"GET\"}","ip":"148.101.59.104"}
+
+[ERROR] 2025-04-13T13:50:50.609Z - Error getting site undefined:
+
+Error: Missing required parameter: "documentId"
+
+    at Databases.getDocument (/app/node_modules/node-appwrite/lib/services/databases.js:1721:19)
+
+    at SiteService.getSiteById (/app/src/services/site.service.js:65:36)
+
+    at hotspotsCheck (/app/src/controllers/monitor.controller.js:164:40)
+
+    at Layer.handleRequest (/app/node_modules/router/lib/layer.js:152:17)
+
+    at next (/app/node_modules/router/lib/route.js:157:13)
+
+    at /app/src/middlewares/role.middleware.js:144:16
+
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+[ERROR] 2025-04-13T13:50:50.609Z - Error en identificación de puntos críticos: Missing required parameter: "documentId"
+
+[DEBUG] 2025-04-13T13:50:50.633Z - Log created successfully with ID: 67fbc13a8afacc31205f
+
+[INFO] 2025-04-13T13:50:50.898Z - Token verified for user ID: 67fbc12fd3967ea5511d
+
+[INFO] 2025-04-13T13:50:51.020Z - User found: 67fbc12fd3967ea5511d
+
+[INFO] 2025-04-13T13:50:51.020Z - User authenticated: 67fbc12fd3967ea5511d
+
+[DEBUG] 2025-04-13T13:50:51.021Z - Creating log entry: monitor:view-history for user 67fbc12fd3967ea5511d
+
+[DEBUG] 2025-04-13T13:50:51.021Z - Log document: {"type":"monitor","action":"view-history","message":"monitor: view-history","userId":"67fbc12fd3967ea5511d","createdAt":"2025-04-13T13:50:51.021Z","metadata":"{\"path\":\"/api/sites/67fbc131a2bbf7b1abff/history\",\"method\":\"GET\"}","ip":"148.101.59.104"}
+
+[DEBUG] 2025-04-13T13:50:51.175Z - Log created successfully with ID: 67fbc13b16f77ac873cd
+
+[ERROR] 2025-04-13T13:50:51.173Z - Error getting site undefined:
+
+Error: Missing required parameter: "documentId"
+
+    at Databases.getDocument (/app/node_modules/node-appwrite/lib/services/databases.js:1721:19)
+
+    at SiteService.getSiteById (/app/src/services/site.service.js:65:36)
+
+    at getHistory (/app/src/controllers/monitor.controller.js:237:40)
+
+    at Layer.handleRequest (/app/node_modules/router/lib/layer.js:152:17)
+
+    at next (/app/node_modules/router/lib/route.js:157:13)
+
+    at /app/src/middlewares/role.middleware.js:144:16
+
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+[ERROR] 2025-04-13T13:50:51.173Z - Error al obtener el historial de monitoreo: Missing required parameter: "documentId"
+
+[INFO] 2025-04-13T13:50:51.547Z - Token verified for user ID: 67fbc12fd3967ea5511d
+
+[INFO] 2025-04-13T13:50:51.676Z - User found: 67fbc12fd3967ea5511d
+
+[INFO] 2025-04-13T13:50:51.677Z - User authenticated: 67fbc12fd3967ea5511d

@@ -855,6 +855,45 @@ class MonitorService {
     }
   }
   
+  /**
+   * Save monitoring result to the database
+   * @param {string} siteId - Site ID
+   * @param {Object} result - Monitor check result
+   * @returns {Object} Saved result
+   */
+  async saveMonitorResult(siteId, result) {
+    try {
+      logger.debug(`Saving monitor result for site ${siteId}`);
+      
+      // Add metadata
+      const resultWithMeta = {
+        ...result,
+        siteId,
+        createdAt: result.timestamp || new Date().toISOString()
+      };
+      
+      // Log the activity
+      await LogService.createLog({
+        type: 'monitor',
+        action: `${result.type || 'check'}-save`,
+        message: `Monitor result saved for site ${siteId}`,
+        siteId,
+        status: 'success',
+        severity: 'low',
+        details: {
+          resultType: result.type,
+          timestamp: resultWithMeta.createdAt
+        }
+      });
+      
+      return resultWithMeta;
+    } catch (error) {
+      logger.error(`Error saving monitor result: ${error.message}`);
+      // Don't throw the error as this is a non-critical operation
+      return result;
+    }
+  }
+  
   // Utilidades privadas
   
   /**

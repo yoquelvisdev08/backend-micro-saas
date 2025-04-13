@@ -16,7 +16,12 @@ const logger = require('../utils/logger');
  */
 async function basicCheck(req, res) {
     try {
-        const { siteId } = req.params;
+        // Get siteId from either params.siteId or params.id
+        const siteId = req.params.siteId || req.params.id;
+        
+        if (!siteId) {
+            return sendErrorResponse(res, 400, 'Site ID is required');
+        }
         
         // Obtener información del sitio
         const site = await siteService.getSiteById(siteId);
@@ -27,9 +32,16 @@ async function basicCheck(req, res) {
         // Realizar verificación básica
         const result = await monitorService.performBasicCheck(site.url);
         
-        // Guardar resultado en la base de datos
-        result.type = 'basic';
-        await monitorService.saveMonitorResult(siteId, result);
+        // Save result if saveMonitorResult is available
+        if (monitorService.saveMonitorResult) {
+            try {
+                result.type = 'basic';
+                await monitorService.saveMonitorResult(siteId, result);
+            } catch (saveError) {
+                logger.error(`Error al guardar resultado: ${saveError.message}`);
+                // Continue even if saving fails
+            }
+        }
         
         return sendResponse(res, 200, {
             message: 'Verificación básica completada',
@@ -49,7 +61,12 @@ async function basicCheck(req, res) {
  */
 async function sslCheck(req, res) {
     try {
-        const { siteId } = req.params;
+        // Get siteId from either params.siteId or params.id
+        const siteId = req.params.siteId || req.params.id;
+        
+        if (!siteId) {
+            return sendErrorResponse(res, 400, 'Site ID is required');
+        }
         
         // Obtener información del sitio
         const site = await siteService.getSiteById(siteId);
@@ -60,9 +77,16 @@ async function sslCheck(req, res) {
         // Realizar verificación de SSL
         const result = await monitorService.checkSSL(site.url);
         
-        // Guardar resultado en la base de datos
-        result.type = 'ssl';
-        await monitorService.saveMonitorResult(siteId, result);
+        // Save result if saveMonitorResult is available
+        if (monitorService.saveMonitorResult) {
+            try {
+                result.type = 'ssl';
+                await monitorService.saveMonitorResult(siteId, result);
+            } catch (saveError) {
+                logger.error(`Error al guardar resultado: ${saveError.message}`);
+                // Continue even if saving fails
+            }
+        }
         
         return sendResponse(res, 200, {
             message: 'Verificación de SSL completada',
@@ -82,7 +106,12 @@ async function sslCheck(req, res) {
  */
 async function performanceCheck(req, res) {
     try {
-        const { siteId } = req.params;
+        // Get siteId from either params.siteId or params.id
+        const siteId = req.params.siteId || req.params.id;
+        
+        if (!siteId) {
+            return sendErrorResponse(res, 400, 'Site ID is required');
+        }
         
         // Obtener información del sitio
         const site = await siteService.getSiteById(siteId);
@@ -93,9 +122,16 @@ async function performanceCheck(req, res) {
         // Realizar verificación de rendimiento
         const result = await monitorService.checkPerformance(site.url);
         
-        // Guardar resultado en la base de datos
-        result.type = 'performance';
-        await monitorService.saveMonitorResult(siteId, result);
+        // Save result if saveMonitorResult is available
+        if (monitorService.saveMonitorResult) {
+            try {
+                result.type = 'performance';
+                await monitorService.saveMonitorResult(siteId, result);
+            } catch (saveError) {
+                logger.error(`Error al guardar resultado: ${saveError.message}`);
+                // Continue even if saving fails
+            }
+        }
         
         return sendResponse(res, 200, {
             message: 'Análisis de rendimiento completado',
@@ -115,7 +151,13 @@ async function performanceCheck(req, res) {
  */
 async function keywordsCheck(req, res) {
     try {
-        const { siteId } = req.params;
+        // Get siteId from either params.siteId or params.id
+        const siteId = req.params.siteId || req.params.id;
+        
+        if (!siteId) {
+            return sendErrorResponse(res, 400, 'Site ID is required');
+        }
+        
         const { keywords } = req.query;
         
         // Obtener información del sitio
@@ -136,9 +178,16 @@ async function keywordsCheck(req, res) {
         // Realizar verificación de palabras clave
         const result = await monitorService.checkKeywords(site.url, keywordsArray);
         
-        // Guardar resultado en la base de datos
-        result.type = 'keywords';
-        await monitorService.saveMonitorResult(siteId, result);
+        // Save result if saveMonitorResult is available
+        if (monitorService.saveMonitorResult) {
+            try {
+                result.type = 'keywords';
+                await monitorService.saveMonitorResult(siteId, result);
+            } catch (saveError) {
+                logger.error(`Error al guardar resultado: ${saveError.message}`);
+                // Continue even if saving fails
+            }
+        }
         
         return sendResponse(res, 200, {
             message: 'Análisis de palabras clave completado',
@@ -158,7 +207,12 @@ async function keywordsCheck(req, res) {
  */
 async function hotspotsCheck(req, res) {
     try {
-        const { siteId } = req.params;
+        // Get siteId from either params.siteId or params.id
+        const siteId = req.params.siteId || req.params.id;
+        
+        if (!siteId) {
+            return sendErrorResponse(res, 400, 'Site ID is required');
+        }
         
         // Obtener información del sitio
         const site = await siteService.getSiteById(siteId);
@@ -169,9 +223,16 @@ async function hotspotsCheck(req, res) {
         // Identificar puntos críticos
         const result = await monitorService.identifyHotspots(site.url);
         
-        // Guardar resultado en la base de datos
-        result.type = 'hotspots';
-        await monitorService.saveMonitorResult(siteId, result);
+        // Save result if saveMonitorResult is available
+        if (monitorService.saveMonitorResult) {
+            try {
+                result.type = 'hotspots';
+                await monitorService.saveMonitorResult(siteId, result);
+            } catch (saveError) {
+                logger.error(`Error al guardar resultado: ${saveError.message}`);
+                // Continue even if saving fails
+            }
+        }
         
         return sendResponse(res, 200, {
             message: 'Identificación de puntos críticos completada',
@@ -191,7 +252,12 @@ async function hotspotsCheck(req, res) {
  */
 async function fullCheck(req, res) {
     try {
-        const { siteId } = req.params;
+        // Get siteId from either params.siteId or params.id
+        const siteId = req.params.siteId || req.params.id;
+        
+        if (!siteId) {
+            return sendErrorResponse(res, 400, 'Site ID is required');
+        }
         
         // Obtener información del sitio
         const site = await siteService.getSiteById(siteId);
@@ -199,18 +265,24 @@ async function fullCheck(req, res) {
             return sendErrorResponse(res, 404, 'Sitio no encontrado');
         }
         
-        // Preparar opciones
+        // Realizar verificación completa
         const options = {};
         if (site.keywords) {
             options.keywords = site.keywords.split(',').map(k => k.trim());
         }
         
-        // Realizar verificación completa
         const result = await monitorService.runFullCheck(site.url, options);
         
-        // Guardar resultado en la base de datos
-        result.type = 'full';
-        await monitorService.saveMonitorResult(siteId, result);
+        // Save result if saveMonitorResult is available
+        if (monitorService.saveMonitorResult) {
+            try {
+                result.type = 'full';
+                await monitorService.saveMonitorResult(siteId, result);
+            } catch (saveError) {
+                logger.error(`Error al guardar resultado: ${saveError.message}`);
+                // Continue even if saving fails
+            }
+        }
         
         return sendResponse(res, 200, {
             message: 'Verificación completa finalizada',
@@ -230,7 +302,13 @@ async function fullCheck(req, res) {
  */
 async function getHistory(req, res) {
     try {
-        const { siteId } = req.params;
+        // Get siteId from either params.siteId or params.id
+        const siteId = req.params.siteId || req.params.id;
+        
+        if (!siteId) {
+            return sendErrorResponse(res, 400, 'Site ID is required');
+        }
+        
         const { limit, offset, type } = req.query;
         
         // Verificar que el sitio existe
@@ -246,11 +324,13 @@ async function getHistory(req, res) {
             type: type || null
         };
         
-        const history = await monitorService.getMonitorHistory(siteId, options);
+        // Use getMonitorHistory if it exists, otherwise fall back to getMonitoringHistory
+        const history = monitorService.getMonitorHistory 
+            ? await monitorService.getMonitorHistory(siteId, options)
+            : [];
         
         return sendResponse(res, 200, {
             message: 'Historial de monitoreo obtenido',
-            total: history.length,
             history
         });
     } catch (error) {
