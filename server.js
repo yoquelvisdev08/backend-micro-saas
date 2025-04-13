@@ -3,7 +3,9 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const { initializeDatabase, isAppwriteConnected } = require('./src/config/appwrite');
 const errorHandler = require('./src/middlewares/error.middleware');
-const { setupSwagger } = require('./src/config/swagger');
+const { setupSwagger, swaggerSpec } = require('./src/config/swagger');
+const fs = require('fs');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -33,6 +35,84 @@ app.use(express.urlencoded({ extended: true }));
 
 // Setup Swagger documentation
 setupSwagger(app);
+
+// Endpoint para descargar la documentación en formato TXT
+app.get('/api/documentation/download/txt', (req, res) => {
+  try {
+    // Convertir la especificación a formato legible
+    const content = JSON.stringify(swaggerSpec, null, 2);
+    
+    // Crear un texto formateado más legible
+    let txtContent = `# API DOCUMENTATION - MICRO SAAS BACKEND\n\n`;
+    txtContent += `## Base URL: ${swaggerSpec.servers[0].url}\n\n`;
+    
+    // Agregar información general
+    txtContent += `# GENERAL INFORMATION\n`;
+    txtContent += `Title: ${swaggerSpec.info.title}\n`;
+    txtContent += `Version: ${swaggerSpec.info.version}\n`;
+    txtContent += `Description: ${swaggerSpec.info.description}\n\n`;
+    
+    // Recorrer los tags para organizarlos
+    swaggerSpec.tags.forEach(tag => {
+      txtContent += `# ${tag.name.toUpperCase()}\n`;
+      txtContent += `${tag.description}\n\n`;
+      
+      // Encontrar endpoints para este tag
+      Object.keys(swaggerSpec.paths).forEach(path => {
+        const methods = swaggerSpec.paths[path];
+        Object.keys(methods).forEach(method => {
+          const endpoint = methods[method];
+          
+          if (endpoint.tags && endpoint.tags.includes(tag.name)) {
+            txtContent += `## ${method.toUpperCase()} ${path}\n`;
+            txtContent += `Summary: ${endpoint.summary || 'No summary'}\n`;
+            txtContent += `Description: ${endpoint.description || 'No description'}\n\n`;
+            
+            // Parámetros
+            if (endpoint.parameters && endpoint.parameters.length > 0) {
+              txtContent += `Parameters:\n`;
+              endpoint.parameters.forEach(param => {
+                txtContent += `  - ${param.name} (${param.in}) ${param.required ? '[Required]' : '[Optional]'}: ${param.description || 'No description'}\n`;
+              });
+              txtContent += `\n`;
+            }
+            
+            // Respuestas
+            if (endpoint.responses) {
+              txtContent += `Responses:\n`;
+              Object.keys(endpoint.responses).forEach(statusCode => {
+                txtContent += `  - ${statusCode}: ${endpoint.responses[statusCode].description || 'No description'}\n`;
+              });
+              txtContent += `\n`;
+            }
+            
+            txtContent += `---\n\n`;
+          }
+        });
+      });
+    });
+    
+    // Configurar respuesta
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Content-Disposition', 'attachment; filename=api-documentation.txt');
+    res.send(txtContent);
+  } catch (error) {
+    console.error('Error al generar documentación TXT:', error);
+    res.status(500).send('Error generando documentación en TXT');
+  }
+});
+
+// Endpoint para descargar la documentación en formato JSON
+app.get('/api/documentation/download/json', (req, res) => {
+  try {
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename=api-documentation.json');
+    res.send(swaggerSpec);
+  } catch (error) {
+    console.error('Error al generar documentación JSON:', error);
+    res.status(500).send('Error generando documentación en JSON');
+  }
+});
 
 // Root route
 app.get('/', (req, res) => {

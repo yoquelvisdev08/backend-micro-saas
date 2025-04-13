@@ -701,7 +701,33 @@ const setupSwagger = (app) => {
   // Ruta para acceder a la documentación
   app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     explorer: true,
-    customCss: '.swagger-ui .topbar { display: none } .swagger-ui .information-container { margin-bottom: 30px; } .swagger-ui .scheme-container { margin: 0 0 20px; padding: 20px 0; }',
+    customCss: `
+      .swagger-ui .topbar { display: none } 
+      .swagger-ui .information-container { margin-bottom: 30px; } 
+      .swagger-ui .scheme-container { margin: 0 0 20px; padding: 20px 0; }
+      
+      /* Estilos para botones de descarga */
+      .download-buttons {
+        text-align: right;
+        margin-top: -30px;
+        margin-bottom: 20px;
+      }
+      .download-button {
+        display: inline-block;
+        background-color: #4CAF50;
+        color: white;
+        padding: 8px 15px;
+        margin-left: 10px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 14px;
+      }
+      .download-button:hover {
+        background-color: #45a049;
+        color: white;
+      }
+      `,
     customSiteTitle: 'Micro SaaS API Documentation',
     swaggerOptions: {
       tagsSorter: 'alpha',
@@ -712,6 +738,32 @@ const setupSwagger = (app) => {
       defaultModelExpandDepth: 1,
       tryItOutEnabled: true,
       persistAuthorization: true
+    },
+    // Añadir HTML personalizado con botones de descarga
+    customfavIcon: null,
+    customJs: null,
+    customHeaders: null,
+    // HTML personalizado para incrustar botones de descarga
+    customHeadContent: null,
+    customFootContent: null,
+    customCode: function(data) {
+      return `${data}
+      <div class="download-buttons">
+        <a href="/api/documentation/download/json" class="download-button" download="api-documentation.json">Descargar JSON</a>
+        <a href="/api/documentation/download/txt" class="download-button" download="api-documentation.txt">Descargar TXT</a>
+      </div>
+      <script>
+        // Agregar los botones después de que la página esté cargada
+        window.onload = function() {
+          var infoContainer = document.querySelector('.information-container');
+          if (infoContainer) {
+            var downloadButtons = document.createElement('div');
+            downloadButtons.className = 'download-buttons';
+            downloadButtons.innerHTML = '<a href="/api/documentation/download/json" class="download-button" download="api-documentation.json">Descargar JSON</a><a href="/api/documentation/download/txt" class="download-button" download="api-documentation.txt">Descargar TXT</a>';
+            infoContainer.appendChild(downloadButtons);
+          }
+        };
+      </script>`;
     }
   }));
 
@@ -722,6 +774,7 @@ const setupSwagger = (app) => {
   });
 
   console.log(`Swagger Docs disponible en /api/docs`);
+  console.log(`Documentación descargable en /api/documentation/download/json y /api/documentation/download/txt`);
 };
 
 module.exports = { setupSwagger, swaggerSpec }; 
