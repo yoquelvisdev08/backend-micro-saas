@@ -29,8 +29,8 @@ async function basicCheck(req, res) {
             return sendErrorResponse(res, 404, 'Sitio no encontrado');
         }
         
-        // Realizar verificación básica
-        const result = await monitorService.performBasicCheck(site.url);
+        // Realizar verificación básica - passing siteId, not URL
+        const result = await monitorService.performBasicCheck(siteId);
         
         // Save result if saveMonitorResult is available
         if (monitorService.saveMonitorResult) {
@@ -74,8 +74,8 @@ async function sslCheck(req, res) {
             return sendErrorResponse(res, 404, 'Sitio no encontrado');
         }
         
-        // Realizar verificación de SSL
-        const result = await monitorService.checkSSL(site.url);
+        // Realizar verificación de SSL - passing siteId, not URL
+        const result = await monitorService.checkSSL(siteId);
         
         // Save result if saveMonitorResult is available
         if (monitorService.saveMonitorResult) {
@@ -119,8 +119,8 @@ async function performanceCheck(req, res) {
             return sendErrorResponse(res, 404, 'Sitio no encontrado');
         }
         
-        // Realizar verificación de rendimiento
-        const result = await monitorService.checkPerformance(site.url);
+        // Realizar verificación de rendimiento - passing siteId, not URL
+        const result = await monitorService.checkPerformance(siteId);
         
         // Save result if saveMonitorResult is available
         if (monitorService.saveMonitorResult) {
@@ -175,8 +175,8 @@ async function keywordsCheck(req, res) {
             keywordsArray = site.keywords.split(',').map(k => k.trim());
         }
         
-        // Realizar verificación de palabras clave
-        const result = await monitorService.checkKeywords(site.url, keywordsArray);
+        // Realizar verificación de palabras clave - passing siteId, not URL
+        const result = await monitorService.checkKeywords(siteId);
         
         // Save result if saveMonitorResult is available
         if (monitorService.saveMonitorResult) {
@@ -220,8 +220,8 @@ async function hotspotsCheck(req, res) {
             return sendErrorResponse(res, 404, 'Sitio no encontrado');
         }
         
-        // Identificar puntos críticos
-        const result = await monitorService.identifyHotspots(site.url);
+        // Identificar puntos críticos - passing siteId, not URL
+        const result = await monitorService.identifyHotspots(siteId);
         
         // Save result if saveMonitorResult is available
         if (monitorService.saveMonitorResult) {
@@ -252,16 +252,20 @@ async function hotspotsCheck(req, res) {
  */
 async function fullCheck(req, res) {
     try {
-        // Get siteId from either params.siteId or params.id
+        // Get siteId from params - check all possible parameter names
         const siteId = req.params.siteId || req.params.id;
         
         if (!siteId) {
+            logger.error('Falta el ID del sitio en la solicitud');
             return sendErrorResponse(res, 400, 'Site ID is required');
         }
+        
+        logger.info(`Iniciando verificación completa para sitio ID: ${siteId}`);
         
         // Obtener información del sitio
         const site = await siteService.getSiteById(siteId);
         if (!site) {
+            logger.error(`Sitio no encontrado con ID: ${siteId}`);
             return sendErrorResponse(res, 404, 'Sitio no encontrado');
         }
         
@@ -271,7 +275,10 @@ async function fullCheck(req, res) {
             options.keywords = site.keywords.split(',').map(k => k.trim());
         }
         
-        const result = await monitorService.runFullCheck(site.url, options);
+        logger.info(`Ejecutando verificación completa para: ${site.name} (${site.url})`);
+        
+        // Passing siteId, not URL
+        const result = await monitorService.runFullCheck(siteId, options);
         
         // Save result if saveMonitorResult is available
         if (monitorService.saveMonitorResult) {

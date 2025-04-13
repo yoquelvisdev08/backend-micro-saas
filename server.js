@@ -13,6 +13,9 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 
+// Configurar Express para confiar en proxies (necesario para express-rate-limit)
+app.set('trust proxy', true);
+
 // Connect to Appwrite
 console.log('Intentando conectar a Appwrite...');
 initializeDatabase()
