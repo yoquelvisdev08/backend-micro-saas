@@ -1,117 +1,137 @@
-[DEBUG] 2025-04-13T13:50:45.282Z - Log created successfully with ID: 67fbc13535844b80a735
+Deploy Logs
+HTTP Logs
 
-[DEBUG] 2025-04-13T13:50:45.301Z - Found 14 activity logs for user 67fbc12fd3967ea5511d
+Filter
 
-[DEBUG] 2025-04-13T13:50:45.302Z - Creating log entry: system:view for user 67fbc12fd3967ea5511d
 
-[DEBUG] 2025-04-13T13:50:45.303Z - Log document: {"type":"system","action":"view","message":"User viewed their statistics","userId":"67fbc12fd3967ea5511d","createdAt":"2025-04-13T13:50:45.302Z"}
 
-[DEBUG] 2025-04-13T13:50:45.435Z - Log created successfully with ID: 67fbc1355ab04b2aba11
 
-[INFO] 2025-04-13T13:50:45.608Z - Token verified for user ID: 67fbc12fd3967ea5511d
+You reached the start of the range → Apr 13, 2025 10:00 AM
 
-[INFO] 2025-04-13T13:50:45.750Z - User found: 67fbc12fd3967ea5511d
+Starting Container
 
-[INFO] 2025-04-13T13:50:45.751Z - User authenticated: 67fbc12fd3967ea5511d
+npm warn config production Use `--omit=dev` instead.
 
-[DEBUG] 2025-04-13T13:50:45.751Z - Creating log entry: user:view for user 67fbc12fd3967ea5511d
+ 
 
-[DEBUG] 2025-04-13T13:50:45.751Z - Log document: {"type":"user","action":"view","message":"User viewed personal statistics","userId":"67fbc12fd3967ea5511d","createdAt":"2025-04-13T13:50:45.751Z","metadata":"{\"path\":\"/api/stats/user\",\"method\":\"GET\"}","ip":"148.101.59.104"}
+> backend-micro-saas@1.0.0 start
 
-[DEBUG] 2025-04-13T13:50:45.753Z - Getting user stats for 67fbc12fd3967ea5511d
+> node src/scripts/check-env.js && node server.js
 
-[DEBUG] 2025-04-13T13:50:45.902Z - Log created successfully with ID: 67fbc135cafbdb338d35
+ 
 
-[INFO] 2025-04-13T13:50:46.477Z - Token verified for user ID: 67fbc12fd3967ea5511d
+==================================================
 
-[INFO] 2025-04-13T13:50:46.631Z - User found: 67fbc12fd3967ea5511d
+VERIFICACIÓN DE ENTORNO DE BACKEND MICRO SAAS
 
-[INFO] 2025-04-13T13:50:46.632Z - User authenticated: 67fbc12fd3967ea5511d
+==================================================
 
-[DEBUG] 2025-04-13T13:50:46.632Z - Creating log entry: system:view for user 67fbc12fd3967ea5511d
+✅ PORT: 5000
 
-[DEBUG] 2025-04-13T13:50:46.632Z - Log document: {"type":"system","action":"view","message":"User viewed activity distribution","userId":"67fbc12fd3967ea5511d","createdAt":"2025-04-13T13:50:46.632Z","metadata":"{\"path\":\"/api/stats/activity\",\"method\":\"GET\"}","ip":"148.101.59.104"}
+✅ NODE_ENV: development
 
-[DEBUG] 2025-04-13T13:50:46.633Z - Getting activity distribution for user 67fbc12fd3967ea5511d
+✅ APPWRITE_ENDPOINT: https://cloud.appwrite.io/v1
 
-[DEBUG] 2025-04-13T13:50:46.768Z - Log created successfully with ID: 67fbc136abc9a7367edb
+✅ APPWRITE_PROJECT_ID: 67f9e30e001064c76e7e
 
-[DEBUG] 2025-04-13T13:50:46.769Z - Found 16 logs for activity distribution
+✅ APPWRITE_API_KEY: ********
 
-[INFO] 2025-04-13T13:50:47.194Z - Token verified for user ID: 67fbc12fd3967ea5511d
+✅ APPWRITE_DATABASE_ID: 67f9e76c00239693dc68
 
-[INFO] 2025-04-13T13:50:47.348Z - User found: 67fbc12fd3967ea5511d
+✅ JWT_SECRET: ********
 
-[INFO] 2025-04-13T13:50:47.348Z - User authenticated: 67fbc12fd3967ea5511d
+✅ JWT_EXPIRES_IN: 30d
 
-[DEBUG] 2025-04-13T13:50:47.349Z - Creating log entry: monitor:run-check for user 67fbc12fd3967ea5511d
+==================================================
 
-[DEBUG] 2025-04-13T13:50:47.349Z - Log document: {"type":"monitor","action":"run-check","message":"monitor: run-check","userId":"67fbc12fd3967ea5511d","createdAt":"2025-04-13T13:50:47.349Z","metadata":"{\"path\":\"/api/sites/67fbc131a2bbf7b1abff/monitor\",\"method\":\"POST\"}","ip":"148.101.59.104"}
+=========== Appwrite Configuration ===========
 
-[INFO] 2025-04-13T13:50:50.468Z - User found: 67fbc12fd3967ea5511d
+APPWRITE_PROJECT_ID: 67f9e30e001064c76e7e
 
-[INFO] 2025-04-13T13:50:50.468Z - User authenticated: 67fbc12fd3967ea5511d
+APPWRITE_DATABASE_ID: 67f9e76c00239693dc68
 
-[DEBUG] 2025-04-13T13:50:50.469Z - Creating log entry: monitor:hotspots-check for user 67fbc12fd3967ea5511d
+APPWRITE_API_KEY: standard_1...
 
-[DEBUG] 2025-04-13T13:50:50.469Z - Log document: {"type":"monitor","action":"hotspots-check","message":"monitor: hotspots-check","userId":"67fbc12fd3967ea5511d","createdAt":"2025-04-13T13:50:50.469Z","metadata":"{\"path\":\"/api/sites/67fbc131a2bbf7b1abff/hotspots\",\"method\":\"GET\"}","ip":"148.101.59.104"}
+JWT_SECRET: Configurado
 
-[ERROR] 2025-04-13T13:50:50.609Z - Error getting site undefined:
+=============================================
 
-Error: Missing required parameter: "documentId"
+DATABASE_ID value used in the code: 67f9e76c00239693dc68
 
-    at Databases.getDocument (/app/node_modules/node-appwrite/lib/services/databases.js:1721:19)
+Intentando conectar a Appwrite...
 
-    at SiteService.getSiteById (/app/src/services/site.service.js:65:36)
+Initializing Appwrite database...
 
-    at hotspotsCheck (/app/src/controllers/monitor.controller.js:164:40)
+Intentando conectar a la base de datos con ID: 67f9e76c00239693dc68
 
-    at Layer.handleRequest (/app/node_modules/router/lib/layer.js:152:17)
+Swagger Docs disponible en /api/docs
 
-    at next (/app/node_modules/router/lib/route.js:157:13)
+Documentación descargable en /api/documentation/download/json y /api/documentation/download/txt
 
-    at /app/src/middlewares/role.middleware.js:144:16
+Controladores disponibles: [
 
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+  'getStats',
 
-[ERROR] 2025-04-13T13:50:50.609Z - Error en identificación de puntos críticos: Missing required parameter: "documentId"
+  'getActivityDistribution',
 
-[DEBUG] 2025-04-13T13:50:50.633Z - Log created successfully with ID: 67fbc13a8afacc31205f
+  'getUserStats',
 
-[INFO] 2025-04-13T13:50:50.898Z - Token verified for user ID: 67fbc12fd3967ea5511d
+  'getUserStatsById',
 
-[INFO] 2025-04-13T13:50:51.020Z - User found: 67fbc12fd3967ea5511d
+  'getAdminStats'
 
-[INFO] 2025-04-13T13:50:51.020Z - User authenticated: 67fbc12fd3967ea5511d
+]
 
-[DEBUG] 2025-04-13T13:50:51.021Z - Creating log entry: monitor:view-history for user 67fbc12fd3967ea5511d
+Server running on port 5000
 
-[DEBUG] 2025-04-13T13:50:51.021Z - Log document: {"type":"monitor","action":"view-history","message":"monitor: view-history","userId":"67fbc12fd3967ea5511d","createdAt":"2025-04-13T13:50:51.021Z","metadata":"{\"path\":\"/api/sites/67fbc131a2bbf7b1abff/history\",\"method\":\"GET\"}","ip":"148.101.59.104"}
+Swagger docs available at http://localhost:5000/api/docs
 
-[DEBUG] 2025-04-13T13:50:51.175Z - Log created successfully with ID: 67fbc13b16f77ac873cd
+Conectado a la base de datos Appwrite: microsaas (67f9e76c00239693dc68)
 
-[ERROR] 2025-04-13T13:50:51.173Z - Error getting site undefined:
+Existing collections: users, sites, logs, users_test
 
-Error: Missing required parameter: "documentId"
+Listing attributes for collection: users
 
-    at Databases.getDocument (/app/node_modules/node-appwrite/lib/services/databases.js:1721:19)
+Found 3 attributes in collection users:
 
-    at SiteService.getSiteById (/app/src/services/site.service.js:65:36)
+- name (string): Required
 
-    at getHistory (/app/src/controllers/monitor.controller.js:237:40)
+- email (string): Required
 
-    at Layer.handleRequest (/app/node_modules/router/lib/layer.js:152:17)
+- password (string): Required
 
-    at next (/app/node_modules/router/lib/route.js:157:13)
+Listing attributes for collection: logs
 
-    at /app/src/middlewares/role.middleware.js:144:16
+Found 7 attributes in collection logs:
 
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+- type (string): Required
 
-[ERROR] 2025-04-13T13:50:51.173Z - Error al obtener el historial de monitoreo: Missing required parameter: "documentId"
+- action (string): Required
 
-[INFO] 2025-04-13T13:50:51.547Z - Token verified for user ID: 67fbc12fd3967ea5511d
+- message (string): Required
 
-[INFO] 2025-04-13T13:50:51.676Z - User found: 67fbc12fd3967ea5511d
+- userId (string): Required
 
-[INFO] 2025-04-13T13:50:51.677Z - User authenticated: 67fbc12fd3967ea5511d
+- metadata (string): Optional
+
+- ip (string): Optional
+
+- createdAt (string): Required
+
+Listing attributes for collection: sites
+
+Found 6 attributes in collection sites:
+
+- name (string): Required
+
+- url (string): Required
+
+- userId (string): Required
+
+- status (string): Optional
+
+- createdAt (string): Required
+
+- updatedAt (string): Required
+
+Database initialization complete. Using existing attribute structure.
